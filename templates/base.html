@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block meta %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% endblock meta %}
+
+    <title>{% block title %}politicaltransparency.ai{% endblock title %}</title>
+
+    {% block stylesheets %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'css/base.css' %}" type="text/css" rel="stylesheet">
+
+    {% endblock stylesheets%}
+
+
+    {% block extra_css %}
+    <!-- Additional page-specific CSS can be added in child templates -->
+    {% endblock extra_css %}
+</head>
+
+<body>
+    <!-- Header/Navigation -->
+    {% block header %}
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    {% block logo %}
+                    <span>politicaltransparency.ai</span>
+                    {% endblock logo %}
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                    aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    {% block navigation %}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about/">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/documents/">Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                    </ul>
+                    {% endblock navigation %}
+                </div>
+            </div>
+        </nav>
+    </header>
+    {% endblock header %}
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Main Content -->
+        {% block main %}
+        <!-- All other templates go in here -->
+        {% endblock main %}
+    </div>
+
+    <!-- Footer -->
+    {% block footer %}
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="footer-logo">
+                        {% block footer_logo %}
+                        <!-- Footer logo - can be overridden -->
+                        <h4>Political Document AI</h4>
+                        {% endblock footer_logo %}
+                    </div>
+                    <p>Making complex political documents accessible and understandable to
+                        everyone through AI-powered explanations and insights.</p>
+                </div>
+                <div class="col-md-2">
+                    <h4>Links</h4>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/about/">About</a></li>
+                        <li><a href="/documents/">Documents</a></li>
+                        <li><a href="/contact/">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h4>Resources</h4>
+                    <ul class="list-unstyled">
+                        <li><a href="/help/">Help Center</a></li>
+                        <li><a href="/faq/">FAQ</a></li>
+                        <li><a href="/api/">API Documentation</a></li>
+                        <li><a href="/terms/">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h4>Connect</h4>
+                    <ul class="list-unstyled d-flex gap-3">
+                        <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                        <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                        <li><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                        <li><a href="#"><i class="fab fa-github"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>&copy; {% now "Y" %} Political Document AI. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p>Privacy Policy | Terms of Use</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock footer %}
+
+    {% block javascript %}
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Font Awesome for icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+    <!-- My base javascript file -->
+    <script src="{% static 'javascript/base.js' %}"></script>
+
+    {% endblock javascript %}
+
+    {% block extra_js %}
+    <!-- Additional page-specific JavaScript can be added in child templates -->
+    {% endblock extra_js %}
+</body>
+
+</html>

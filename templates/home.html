@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<style>
+  /* Root variables for consistent gradient blend */
+  :root {
+    --blend-width: 10%;        /* How wide the blended area should be */
+  }
+  
+  /* Hero section styling */
+  .hero-section {
+    position: relative;
+    min-height: 95vh; /* Changed from 100vh to 90vh */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 0 0 30px 30px;
+    margin-bottom: 2rem;
+  }
+  
+  .hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    /* Create a diagonal gradient blend centered in the middle of the screen */
+    background: linear-gradient(
+      135deg,  /* Perfect diagonal from bottom-left to top-right */
+      var(--color-bittersweet) 0%,                     /* Bittersweet red */
+      var(--color-bittersweet) calc(50% - var(--blend-width)),   /* Red before blend starts */
+      /* Gradient blend area */
+      var(--color-bittersweet-light) calc(50% - var(--blend-width)/2),
+      #B298DC 50%,                    /* Purple in the middle for smoother transition */
+      var(--color-electric-indigo-light) calc(50% + var(--blend-width)/2),
+      /* Blue after blend ends */
+      var(--color-electric-indigo) calc(50% + var(--blend-width)),
+      var(--color-electric-indigo) 100%
+    );
+  }
+  
+  /* We don't need the :before and :after pseudo-elements anymore since we're using a gradient */
+  
+  /* We've removed the lightsaber effect and replaced it with a gradient blend */
+  
+  .hero-content {
+    padding-top: 70px; /* Ensure content doesn't go under header */
+    max-width: 1200px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin: 0 auto;
+    color: var(--color-arctic-white);
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-content {
+    max-width: 1200px;
+    padding: 0 2rem;
+    margin: 0 auto;
+    color: #F8F9FC; /* Arctic White */
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  .hero-description {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    max-width: 800px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+  }
+  
+  .search-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 5;
+  }
+  
+  .search-form {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .search-input {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: 1px solid #E4DFFF; /* Soft Lavender */
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #5E2BFF; /* Electric Indigo */
+    box-shadow: 0 0 0 3px rgba(94, 43, 255, 0.1);
+  }
+  
+  .search-button {
+    background-color: #5E2BFF; /* Electric Indigo */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .search-button:hover {
+    background-color: #7D53FF; /* 10% lighter */
+    transform: translateY(-2px);
+  }
+  
+  .btn {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+  }
+  
+  .btn-primary {
+    background-color: var(--color-electric-indigo);
+    color: white;
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--color-electric-indigo-light);
+    transform: translateY(-2px);
+  }
+  
+  .btn-secondary {
+    background-color: transparent;
+    color: white;
+    border: 1.5px solid white;
+  }
+  
+  .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .analyze-btn {
+    background-color: #5E2BFF; /* Electric Indigo */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .analyze-btn:hover {
+    background-color: #7D53FF; /* 10% lighter */
+    transform: translateY(-2px);
+  }
+  
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Mission Statement section styling */
+  .mission-section {
+    padding: 5rem 2rem;
+    background-color: var(--color-soft-lavender);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .mission-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 8px 30px rgba(21, 27, 54, 0.1);
+    text-align: center;
+    transform: translateY(-50px);
+  }
+  
+  .mission-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 2rem;
+    color: var(--color-midnight-blue);
+    margin-bottom: 1.5rem;
+  }
+  
+  .mission-content {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--color-midnight-blue);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .mission-highlight {
+    color: var(--color-electric-indigo);
+    font-weight: 500;
+  }
+
+  
+  /* Features section */
+  .features-section {
+    padding: 5rem 2rem;
+    background-color: var(--color-arctic-white);
+  }
+  
+  .section-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 2.25rem;
+    color: var(--color-midnight-blue);
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .feature-card {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(21, 27, 54, 0.08);
+    padding: 2rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(21, 27, 54, 0.12);
+  }
+  
+  .feature-icon {
+    color: var(--color-electric-indigo);
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.375rem;
+    color: var(--color-midnight-blue);
+    margin-bottom: 1rem;
+  }
+  
+  .feature-description {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--color-neutral-grey);
+    line-height: 1.6;
+  }
+  
+  /* Transparent header that becomes visible on scroll */
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: transparent;
+    transition: background-color 0.4s ease;
+    z-index: 1000;
+  }
+  
+  .site-header.scrolled {
+    background-color: rgba(21, 27, 54, 0.95); /* Using direct color value since rgba with variables requires extra setup */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .navbar-dark .navbar-brand {
+    color: white;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block main %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-bg"></div>
+  <!-- Removed the hero-divider element as we're using a gradient instead -->
+  <div class="hero-content">
+    <h1 class="hero-title">Simple, unbiased access to dense political documents.</h1>
+    <p class="hero-description">Our AI-powered platform allows anyone to engage with important, long and complex political documents which they would otherwise have to rely on others to interpret.</p>
+    
+    <div class="hero-cta">
+      <a href="/documents/" class="btn btn-primary">Browse Documents</a>
+      <a href="/about/" class="btn btn-secondary">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- Mission Statement Section -->
+<section class="mission-section">
+    <div class="mission-container">
+      <h2 class="mission-title">Our Mission</h2>
+      <p class="mission-content">
+        polticialtransparency.ai is a public good. We set up this tool as a not for profit intended to help democratize access and understanding of complex political documents. We hope people use this tool to better their understanding of important documents which define our times, without relying on the potentially bias interpretation of other people, politicians or the media.
+      </p>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-file-upload"></i>
+        </div>
+        <h3 class="feature-title">Find a document</h3>
+        <p class="feature-description">Browse through the documents to find one you want to learn more about.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3 class="feature-title">Have a chat</h3>
+        <p class="feature-description">Use our chat feature to engage with the document, in a format that suits you, without any filter or bias.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-lightbulb"></i>
+        </div>
+        <h3 class="feature-title">Get informed</h3>
+        <p class="feature-description">Receive explanations, insights or references (whatever you want) from the document in whatever format suits you best.</p>
+      </div>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3 class="feature-title">Top tip</h3>
+            <p class="feature-description">The tool is set up to be something between a search engine and a chat bot which is built specifically for each document. You should engage with the tool like it's a chatbot but expect informative a heavilty sourced responses, similar to a search engine.</p>
+        </div>
+    </div>
+    </div>
+</section>
+
+{% endblock main %}
+
+{% block extra_js %}
+<script>
+  // JavaScript to handle header transparency on scroll
+  document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.site-header');
+    const heroSection = document.querySelector('.hero-section');
+    
+    window.addEventListener('scroll', function() {
+      // Calculate when the user is near the bottom of the hero section
+      const heroHeight = heroSection.offsetHeight;
+      const scrollTriggerPoint = heroHeight * 0.8; // 80% down the hero section
+      
+      if (window.scrollY > scrollTriggerPoint) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+  });
+</script>
+{% endblock extra_js %}
