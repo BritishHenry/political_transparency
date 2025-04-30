@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Documents | politicaltransparency.ai{% endblock title %}
+
+{% block extra_css %}
+<style>
+  /* Document page specific styles */
+  .documents-header {
+    background-color: var(--color-soft-lavender);
+    padding: var(--spacing-5) 0;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .documents-title {
+    color: var(--color-midnight-blue);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .documents-description {
+    max-width: 720px;
+  }
+
+  .filter-bar {
+    background-color: white;
+    border-radius: var(--radius-large);
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    box-shadow: var(--shadow-card);
+  }
+
+  .document-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-standard), box-shadow var(--transition-standard);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .document-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(21, 27, 54, 0.15);
+  }
+
+  /* Moved the vertical gradient line to hover state for all cards */
+  .document-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--color-electric-indigo), var(--color-bittersweet));
+    opacity: 0;
+    transition: opacity var(--transition-standard);
+  }
+  
+  .document-card:hover::before {
+    opacity: 1;
+  }
+
+  .document-card-body {
+    flex: 1;
+    padding: var(--spacing-3);
+  }
+
+  .document-card-footer {
+    padding: var(--spacing-2) var(--spacing-3);
+    border-top: 1px solid var(--color-soft-lavender);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .document-meta {
+    color: var(--color-neutral-grey);
+    font-size: var(--font-size-small);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .document-tag {
+    display: inline-block;
+    padding: 4px var(--spacing-1);
+    background-color: var(--color-soft-lavender);
+    color: var(--color-electric-indigo);
+    border-radius: var(--radius-standard);
+    font-size: 12px;
+    font-weight: var(--font-medium);
+    margin-right: var(--spacing-1);
+    margin-bottom: var(--spacing-1);
+  }
+
+  .document-tag-featured{
+    background-color: var(--color-amber-alert);
+    color: var(--color-arctic-white);
+  }
+
+  .document-card-title {
+    margin-bottom: var(--spacing-1);
+    font-size: var(--font-size-h4);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .document-card-description {
+    color: var(--color-neutral-grey);
+    font-size: var(--font-size-small);
+    margin-bottom: var(--spacing-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .document-date {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-grey);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-5);
+    background-color: white;
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-card);
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    color: var(--color-soft-lavender);
+    margin-bottom: var(--spacing-3);
+  }
+
+  /* Animated card shimmer effect for hover */
+  .document-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.8s;
+  }
+
+  .document-card:hover::after {
+    transform: translateX(100%);
+  }
+
+  .search-box {
+    position: relative;
+    flex-grow: 1;
+    max-width: 500px;
+  }
+
+  .search-box input {
+    padding-left: 40px;
+    width: 100%;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-neutral-grey);
+  }
+</style>
+{% endblock extra_css %}
+
+{% block main %}
+<!-- Page Header -->
+<section class="documents-header">
+  <div class="container">
+    <h1 class="documents-title">Political Documents Library</h1>
+    <p class="documents-description">
+      Explore our comprehensive collection of political documents. Use our AI-powered platform to understand complex political texts that would otherwise require expert interpretation.
+    </p>
+  </div>
+</section>
+
+<!-- Filter Bar -->
+<div class="container">
+  <div class="filter-bar">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <div class="search-box">
+          <span class="search-icon">
+            <i class="fas fa-search"></i>
+          </span>
+          <input type="text" class="form-input" placeholder="Search documents...">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+          <select class="form-select" style="width: auto;">
+            <option selected>All Categories</option>
+            <option>Legislation</option>
+            <option>Executive Orders</option>
+            <option>Court Opinions</option>
+            <option>International Treaties</option>
+          </select>
+          <select class="form-select" style="width: auto;">
+            <option selected>Sort By: Recent</option>
+            <option>Sort By: Oldest</option>
+            <option>Sort By: Title A-Z</option>
+            <option>Sort By: Most Viewed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents Grid -->
+  <div class="row row-equal mb-5">
+    
+    <!-- Document Card 1 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">Legislation</span>
+            <span class="document-tag document-tag-featured">Featured</span>
+          </div>
+          <h3 class="document-card-title">Infrastructure Investment and Jobs Act</h3>
+          <p class="document-card-description">
+            A comprehensive bill that addresses America's infrastructure needs, including transportation, broadband access, utilities, and environmental remediation.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 3,245</span>
+            <span><i class="fas fa-comment"></i> 156</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added April 15, 2025
+          </div>
+          <a href="/documents/infrastructure-act/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Card 2 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">Executive Order</span>
+          </div>
+          <h3 class="document-card-title">Climate Change Adaptation Executive Order</h3>
+          <p class="document-card-description">
+            Executive Order addressing federal agency responsibilities regarding climate change adaptation and resilience planning across government operations.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 1,784</span>
+            <span><i class="fas fa-comment"></i> 89</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added April 10, 2025
+          </div>
+          <a href="/documents/climate-executive-order/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Card 3 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">Court Opinion</span>
+            <span class="document-tag">Supreme Court</span>
+          </div>
+          <h3 class="document-card-title">Citizens United v. Federal Election Commission</h3>
+          <p class="document-card-description">
+            Supreme Court ruling addressing campaign finance restrictions and First Amendment protections for political speech by corporations and unions.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 2,931</span>
+            <span><i class="fas fa-comment"></i> 245</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added April 5, 2025
+          </div>
+          <a href="/documents/citizens-united/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Card 4 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">International</span>
+            <span class="document-tag">Treaty</span>
+          </div>
+          <h3 class="document-card-title">Paris Climate Agreement</h3>
+          <p class="document-card-description">
+            International treaty on climate change with goals to reduce global greenhouse gas emissions and limit global warming to well below 2°C above pre-industrial levels.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 1,456</span>
+            <span><i class="fas fa-comment"></i> 78</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added March 29, 2025
+          </div>
+          <a href="/documents/paris-agreement/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Card 5 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">Legislation</span>
+            <span class="document-tag">Healthcare</span>
+          </div>
+          <h3 class="document-card-title">Affordable Care Act</h3>
+          <p class="document-card-description">
+            Comprehensive healthcare reform law designed to expand coverage, control healthcare costs, and improve healthcare delivery system quality.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 2,187</span>
+            <span><i class="fas fa-comment"></i> 132</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added March 22, 2025
+          </div>
+          <a href="/documents/affordable-care-act/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Card 6 -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="document-card card">
+        <div class="document-card-body">
+          <div class="mb-2">
+            <span class="document-tag">Bill</span>
+            <span class="document-tag">Draft</span>
+          </div>
+          <h3 class="document-card-title">Digital Privacy Protection Act</h3>
+          <p class="document-card-description">
+            Proposed legislation to establish new data privacy standards, enhance consumer rights regarding personal data, and create stronger enforcement mechanisms.
+          </p>
+          <div class="document-meta">
+            <span><i class="fas fa-eye"></i> 942</span>
+            <span><i class="fas fa-comment"></i> 67</span>
+          </div>
+        </div>
+        <div class="document-card-footer">
+          <div class="document-date">
+            <i class="far fa-calendar-alt"></i> Added March 15, 2025
+          </div>
+          <a href="/documents/digital-privacy-act/" class="button-secondary" style="padding: 6px 12px;">
+            View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Pagination -->
+  <nav aria-label="Document pagination" class="my-5">
+    <ul class="pagination justify-content-center">
+      <li class="page-item disabled">
+        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+      </li>
+      <li class="page-item active" aria-current="page">
+        <a class="page-link" href="#">1</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="#">2</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="#">3</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="#">Next</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+{% endblock main %}
+
+{% block extra_js %}
+<script>
+  // This could be expanded to include filtering/search functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.querySelector('.search-box input');
+    searchInput.addEventListener('input', function() {
+      // This would normally connect to a backend search
+      console.log('Searching for:', this.value);
+    });
+    
+    // Additional document interaction logic could be added here
+  });
+</script>
+{% endblock extra_js %}

@@ -10,11 +10,14 @@ def about(request):
     context={}
     return render(request, "about.html", context)
 
-
 def contact(request):
     context={}
     return render(request, "contact.html", context)
 
-def donations(request):
+def privacy_policy(request):
     context={}
-    return render(request, "donations.html", context)
+    return render(request, "privacy_policy.html", context)
+
+def terms_of_use(request):
+    context={}
+    return render(request, "terms_of_use.html", context)

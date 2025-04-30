@@ -23,7 +23,8 @@
      --color-midnight-blue: #151B36;
      --color-arctic-white: #F8F9FC;
      --color-soft-lavender: #E4DFFF;
-     
+     --color-jet: #33312E; /* Out of use, but I like it. */
+
      /* Accent Colors */
      --color-aqua-mint: #40DDCB;
      --color-amber-alert: #FFBE0B;
@@ -964,7 +965,7 @@
    
    /* Main Header */
    .site-header {
-     background-color: var(--color-soft-lavender);
+     background-color: var(--color-wisteria);
      color: white;
      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
      position: sticky;
@@ -1206,7 +1207,7 @@
       ----------------------------- */
    
    .site-footer {
-     background-color: var(--color-soft-lavender);
+     background-color: var(--color-wisteria);
      color: white;
      padding: var(--spacing-5) 0 var(--spacing-3);
      height:auto;

@@ -17,12 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from general import views as g_views
+from document_manager import views as docs_views
+from donations_manager import views as dons_views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("admin/",          admin.site.urls),
 
-    path("",            g_views.home, name="home"),
-    path("about/",      g_views.about, name="about"),
-    path("contact/",    g_views.contact, name="contact"),
-    path("donations/",  g_views.donations, name="donations"),
+    # Auxilliary Pages 
+    path("",                    g_views.home, name="home"),
+    path("about/",              g_views.about, name="about"),
+    path("contact/",            g_views.contact, name="contact"),
+    path("terms-of-use/",       g_views.terms_of_use, name="terms_of_use"),
+    path("privacy-policy/",     g_views.privacy_policy, name="privacy_policy"),
+
+    # Donations
+    path("donations/",              dons_views.donations, name="donations"),
+
+    # Document Handling
+    path("document-library/",       docs_views.document_library, name="document_library"),
+    path("documents/",              docs_views.documents, name="documents"),
+    path("chat/",                   docs_views.chat, name="chat"),
+
 ]

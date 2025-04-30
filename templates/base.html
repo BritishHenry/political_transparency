@@ -37,7 +37,7 @@
     <!-- Header/Navigation -->
     {% block header %}
     <header class="site-header">
-        <nav class="navbar navbar-expand-lg navbar-dark">
+        <nav class="navbar">
             <div class="container">
                 <a class="navbar-brand" href="/">
                     {% block logo %}
@@ -91,34 +91,27 @@
                         <h4>Political Document AI</h4>
                         {% endblock footer_logo %}
                     </div>
-                    <p>Making complex political documents accessible and understandable to
-                        everyone through AI-powered explanations and insights.</p>
+                    <p>
+                        Our AI-powered platform allows anyone to engage with important, long and complex political documents which they would otherwise have to rely on others to interpret.
+                    </p>
                 </div>
-                <div class="col-md-2">
-                    <h4>Links</h4>
+                <div class="col-md-4">
+                    <h4>Site</h4>
                     <ul class="list-unstyled">
                         <li><a href="/">Home</a></li>
-                        <li><a href="/about/">About</a></li>
+                        <li><a href="/about/">About Us</a></li>
                         <li><a href="/documents/">Documents</a></li>
-                        <li><a href="/contact/">Contact</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <h4>Resources</h4>
-                    <ul class="list-unstyled">
-                        <li><a href="/help/">Help Center</a></li>
-                        <li><a href="/faq/">FAQ</a></li>
-                        <li><a href="/api/">API Documentation</a></li>
-                        <li><a href="/terms/">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <h4>Connect</h4>
                     <ul class="list-unstyled d-flex gap-3">
                         <li><a href="#"><i class="fab fa-twitter"></i></a></li>
                         <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
                         <li><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
                         <li><a href="#"><i class="fab fa-github"></i></a></li>
+                        <li><a href="/contact/">Contact Us</a></li>
+
                     </ul>
                 </div>
             </div>
@@ -128,7 +121,7 @@
                         <p>&copy; {% now "Y" %} Political Document AI. All rights reserved.</p>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        <p>Privacy Policy | Terms of Use</p>
+                        <p><a href="/privacy-policy/">Privacy Policy</a> | <a href="/terms-of-use/">Terms of Use</a></p>
                     </div>
                 </div>
             </div>
