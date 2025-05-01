@@ -1,689 +1,50 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Featured Documents | politicaltransparency.ai{% endblock title %}
 
 {% block extra_css %}
 <!-- Add Animate.css library -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-
-<style>
-  /* Fun, Ambitious Featured Documents Page Styles */
-  /* Exciting hero section with animated background */
-  .hero-section {
-    background: linear-gradient(135deg, var(--color-electric-indigo-dark), var(--color-wisteria));
-    color: white;
-    padding: var(--spacing-6) 0;
-    position: relative;
-    overflow: hidden;
-    border-radius: 0 0 var(--radius-large) var(--radius-large);
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-  }
-  
-  /* Animated background elements */
-  .hero-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 30%, rgba(255, 86, 79, 0.4) 0%, transparent 25%),
-      radial-gradient(circle at 80% 20%, rgba(94, 43, 255, 0.4) 0%, transparent 30%),
-      radial-gradient(circle at 40% 80%, rgba(64, 221, 203, 0.4) 0%, transparent 30%),
-      radial-gradient(circle at 70% 90%, rgba(255, 190, 11, 0.3) 0%, transparent 20%);
-    animation: pulseBackground 15s infinite alternate ease-in-out;
-  }
-  
-  @keyframes pulseBackground {
-    0% { opacity: 0.7; background-position: 0% 0%; }
-    50% { opacity: 1; background-position: 10% 10%; }
-    100% { opacity: 0.7; background-position: 0% 0%; }
-  }
-  
-  /* Floating shapes background */
-  .floating-shapes {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 1;
-  }
-  
-  .shape {
-    position: absolute;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    animation: float 20s infinite linear;
-  }
-  
-  .shape-1 {
-    width: 80px;
-    height: 80px;
-    top: 10%;
-    left: 10%;
-    animation-duration: 22s;
-    animation-delay: -5s;
-  }
-  
-  .shape-2 {
-    width: 60px;
-    height: 60px;
-    top: 20%;
-    right: 15%;
-    animation-duration: 18s;
-    animation-delay: -8s;
-  }
-  
-  .shape-3 {
-    width: 40px;
-    height: 40px;
-    bottom: 20%;
-    left: 20%;
-    animation-duration: 25s;
-    animation-delay: -10s;
-  }
-  
-  .shape-4 {
-    width: 100px;
-    height: 100px;
-    bottom: 10%;
-    right: 10%;
-    animation-duration: 30s;
-    animation-delay: -15s;
-  }
-  
-  .shape-5 {
-    width: 50px;
-    height: 50px;
-    top: 50%;
-    left: 50%;
-    animation-duration: 20s;
-    animation-delay: -12s;
-  }
-  
-  .shape-square {
-    border-radius: 5px;
-    transform: rotate(45deg);
-  }
-  
-  .shape-triangle {
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    border-radius: 0;
-  }
-  
-  .shape-pentagon {
-    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-    border-radius: 0;
-  }
-  
-  @keyframes float {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    25% { transform: translate(50px, 25px) rotate(90deg); }
-    50% { transform: translate(0, 50px) rotate(180deg); }
-    75% { transform: translate(-50px, 25px) rotate(270deg); }
-    100% { transform: translate(0, 0) rotate(360deg); }
-  }
-  
-  /* Hero content with 3D effect and animations */
-  .hero-content {
-    position: relative;
-    z-index: 2;
-    perspective: 1000px;
-  }
-  
-  .hero-title {
-    font-size: 4rem;
-    margin-bottom: var(--spacing-3);
-    font-weight: var(--font-bold);
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transform: translateZ(50px);
-    letter-spacing: -0.03em;
-    background: linear-gradient(to right, white, #e4dfff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  
-  @media (max-width: 768px) {
-    .hero-title {
-      font-size: 2.5rem;
-    }
-  }
-  
-  .hero-description {
-    max-width: 700px;
-    margin-bottom: var(--spacing-4);
-    font-size: 1.25rem;
-    transform: translateZ(25px);
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Fun interactive 3D buttons */
-  .hero-buttons {
-    display: flex;
-    gap: var(--spacing-3);
-    flex-wrap: wrap;
-  }
-  
-  .cta-3d {
-    position: relative;
-    transform-style: preserve-3d;
-    transform: perspective(1000px) translateZ(0);
-    transition: transform 0.3s ease;
-  }
-  
-  .cta-3d:hover {
-    transform: perspective(1000px) translateZ(20px) rotateX(5deg) rotateY(5deg);
-  }
-  
-  .library-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-    color: var(--color-electric-indigo);
-    border: none;
-    padding: 16px 32px;
-    border-radius: var(--radius-standard);
-    font-weight: var(--font-bold);
-    font-size: 1.1rem;
-    text-decoration: none;
-    box-shadow: 
-      0 10px 20px rgba(0, 0, 0, 0.15),
-      0 6px 0 rgba(0, 0, 0, 0.1);
-    transform: translateY(0);
-    transition: all 0.2s ease;
-  }
-  
-  .library-button:hover {
-    transform: translateY(-6px);
-    box-shadow: 
-      0 14px 28px rgba(0, 0, 0, 0.2),
-      0 10px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .library-button:active {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 5px 10px rgba(0, 0, 0, 0.2),
-      0 3px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.05s ease;
-  }
-  
-  .library-button i {
-    margin-right: 10px;
-    font-size: 1.2em;
-  }
-  
-  .explore-button {
-    background: linear-gradient(45deg, var(--color-bittersweet), var(--color-amber-alert));
-    color: white;
-  }
-  
-  /* Exciting 3D flip cards */
-  .featured-card-container {
-    perspective: 1000px;
-    height: 100%;
-  }
-  
-  .featured-card {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-  }
-  
-  .featured-card-container:hover .featured-card {
-    transform: rotateY(180deg);
-  }
-  
-  .featured-card-front,
-  .featured-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: var(--radius-large);
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-  }
-  
-  .featured-card-front {
-    background-color: white;
-    transform: rotateY(0deg);
-  }
-  
-  .featured-card-back {
-    background-color: white;
-    transform: rotateY(180deg);
-    display: flex;
-    flex-direction: column;
-    padding: var(--spacing-3);
-  }
-  
-  .featured-card-header {
-    background-size: cover;
-    background-position: center;
-    height: 220px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.5s ease;
-  }
-  
-  .featured-card-container:hover .featured-card-header {
-    transform: scale(1.05);
-  }
-  
-  .featured-card-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom, rgba(21, 27, 54, 0.2), rgba(21, 27, 54, 0.8));
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: var(--spacing-3);
-    color: white;
-  }
-  
-  .featured-card-title {
-    font-size: var(--font-size-h3);
-    margin-bottom: var(--spacing-1);
-    font-weight: var(--font-semibold);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-  
-  .featured-tag {
-    display: inline-block;
-    padding: 6px var(--spacing-2);
-    background-color: var(--color-bittersweet);
-    color: white;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: var(--font-semibold);
-    margin-bottom: var(--spacing-2);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .featured-card-body {
-    padding: var(--spacing-3);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .featured-card-description {
-    color: var(--color-neutral-grey);
-    margin-bottom: var(--spacing-3);
-    flex: 1;
-  }
-  
-  .featured-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid var(--color-soft-lavender);
-    padding-top: var(--spacing-2);
-    margin-top: auto;
-  }
-  
-  .featured-card-date {
-    color: var(--color-neutral-grey);
-    font-size: var(--font-size-small);
-  }
-  
-  .featured-card-cta {
-    color: var(--color-electric-indigo);
-    text-decoration: none;
-    font-weight: var(--font-medium);
-    display: flex;
-    align-items: center;
-    transition: all var(--transition-standard);
-  }
-  
-  .featured-card-cta:hover {
-    color: var(--color-electric-indigo-light);
-  }
-  
-  .featured-card-cta i {
-    margin-left: 4px;
-    transition: transform var(--transition-standard);
-  }
-  
-  .featured-card-cta:hover i {
-    transform: translateX(3px);
-  }
-  
-  /* Interactive spotlight section with parallax */
-  .spotlight-section {
-    margin: var(--spacing-6) 0;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .parallax-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 130%;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%235e2bff' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.8;
-    z-index: -1;
-  }
-  
-  .spotlight-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-4);
-    position: relative;
-  }
-  
-  .spotlight-title {
-    font-size: 3rem;
-    margin: 0;
-    position: relative;
-    display: inline-block;
-    color: var(--color-midnight-blue);
-    text-shadow: 2px 2px 0 rgba(94, 43, 255, 0.2);
-  }
-  
-  .spotlight-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 100px;
-    height: 5px;
-    background: linear-gradient(90deg, var(--color-electric-indigo), var(--color-bittersweet));
-    border-radius: 10px;
-    animation: expandLine 1.5s ease-out forwards;
-    transform-origin: left;
-  }
-  
-  @keyframes expandLine {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-  }
-  
-  /* Interactive 3D spotlight card */
-  .spotlight-card {
-    background-color: white;
-    border-radius: var(--radius-large);
-    box-shadow: 
-      0 15px 35px rgba(50, 50, 93, 0.1),
-      0 5px 15px rgba(0, 0, 0, 0.07);
-    overflow: hidden;
-    padding: var(--spacing-5);
-    position: relative;
-    transition: all 0.3s ease;
-    transform-style: preserve-3d;
-    transform: perspective(1000px);
-  }
-  
-  .spotlight-card:hover {
-    box-shadow: 
-      0 20px 40px rgba(50, 50, 93, 0.15),
-      0 10px 20px rgba(0, 0, 0, 0.1);
-  }
-  
-  .spotlight-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(to right, var(--color-electric-indigo), var(--color-bittersweet));
-  }
-  
-  .spotlight-highlight {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    background: radial-gradient(circle at var(--x, center) var(--y, center), rgba(255,255,255,0.2) 0%, transparent 80%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  
-  .spotlight-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
-  }
-  
-  @media (min-width: 992px) {
-    .spotlight-content {
-      flex-direction: row;
-    }
-    
-    .spotlight-text {
-      flex: 3;
-    }
-    
-    .spotlight-graphic {
-      flex: 2;
-    }
-  }
-  
-  .spotlight-description {
-    font-size: 1.1rem;
-    margin-bottom: var(--spacing-3);
-  }
-  
-  .key-points {
-    margin-top: var(--spacing-3);
-  }
-  
-  .key-point {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-2);
-  }
-  
-  .key-point-icon {
-    background-color: var(--color-soft-lavender);
-    color: var(--color-electric-indigo);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: var(--spacing-2);
-    flex-shrink: 0;
-  }
-  
-  .category-section {
-    margin: var(--spacing-5) 0;
-  }
-  
-  .category-title {
-    margin-bottom: var(--spacing-3);
-    font-size: var(--font-size-h3);
-    position: relative;
-    display: inline-block;
-  }
-  
-  .category-title::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 40px;
-    height: 3px;
-    background-color: var(--color-electric-indigo);
-  }
-  
-  .cta-section {
-    background-color: var(--color-soft-lavender);
-    border-radius: var(--radius-large);
-    padding: var(--spacing-5);
-    margin: var(--spacing-5) 0;
-    text-align: center;
-  }
-  
-  .cta-title {
-    font-size: var(--font-size-h2);
-    margin-bottom: var(--spacing-3);
-    color: var(--color-midnight-blue);
-  }
-  
-  .cta-description {
-    max-width: 700px;
-    margin: 0 auto var(--spacing-4);
-    color: var(--color-midnight-blue);
-  }
-  
-  .statistic-card {
-    background-color: white;
-    border-radius: var(--radius-standard);
-    padding: var(--spacing-3);
-    text-align: center;
-    transition: all var(--transition-standard);
-    height: 100%;
-  }
-  
-  .statistic-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card);
-  }
-  
-  .statistic-number {
-    font-size: 2.5rem;
-    font-weight: var(--font-bold);
-    color: var(--color-electric-indigo);
-    margin-bottom: var(--spacing-1);
-  }
-  
-  .statistic-label {
-    color: var(--color-neutral-grey);
-    font-size: var(--font-size-small);
-  }
-  
-  .insight-pill {
-    display: inline-block;
-    background-color: white;
-    border-radius: 50px;
-    padding: 8px 16px;
-    margin-right: 8px;
-    margin-bottom: 8px;
-    color: var(--color-electric-indigo);
-    box-shadow: 0 2px 8px rgba(94, 43, 255, 0.1);
-    transition: all var(--transition-standard);
-    cursor: pointer;
-  }
-  
-  .insight-pill:hover {
-    background-color: var(--color-electric-indigo);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(94, 43, 255, 0.2);
-  }
-  
-  /* Fun decorative elements */
-  .decorative-circle {
-    position: absolute;
-    border-radius: 50%;
-    z-index: 0;
-    opacity: 0.5;
-  }
-  
-  .circle-1 {
-    width: 300px;
-    height: 300px;
-    background-color: var(--color-bittersweet);
-    top: -150px;
-    right: -100px;
-    filter: blur(60px);
-  }
-  
-  .circle-2 {
-    width: 200px;
-    height: 200px;
-    background-color: var(--color-electric-indigo);
-    bottom: -100px;
-    left: -50px;
-    filter: blur(60px);
-  }
-</style>
+<!-- Add our custom CSS file -->
+<link href="{% static 'css/documents.css' %}" type="text/css" rel="stylesheet" />
 {% endblock extra_css %}
 
 {% block main %}
-<!-- Clearer Hero Section with Fun Elements -->
+<!-- Hero Section with Chat Bubbles -->
 <section class="hero-section">
   <div class="container hero-content animate__animated animate__fadeIn">
     <div class="row align-items-center">
       <div class="col-lg-6">
-        <h1 class="hero-title animate__animated animate__fadeInUp">Political Documents Hub</h1>
-        <p class="hero-description animate__animated animate__fadeInUp animate__delay-1s">
-          Cutting through complex political language with AI-powered analysis. Explore our featured documents and gain deeper understanding without the jargon.
-        </p>
-        <div class="hero-buttons animate__animated animate__fadeInUp animate__delay-2s">
+        <h1 class="hero-title animate__animated animate__fadeInUp">Documents Hub</h1>
+        <div class="hero-buttons animate__animated animate__fadeInUp animate__delay-1s">
           <div class="cta-3d">
             <a href="/documents/" class="library-button">
-              <i class="fas fa-books"></i> Browse Complete Library
-            </a>
-          </div>
-          <div class="cta-3d">
-            <a href="#spotlight" class="library-button explore-button">
-              <i class="fas fa-rocket"></i> Start Exploring
+              Browse Document Library
             </a>
           </div>
         </div>
       </div>
-      <div class="col-lg-6 d-none d-lg-block">
-        <div class="hero-illustration animate__animated animate__fadeInRight animate__delay-2s">
-          <div class="doc-stack-container">
-            <div class="doc-stack-item doc1">
-              <div class="doc-header">
-                <div class="doc-badge">Legislation</div>
-              </div>
-              <div class="doc-body">
-                <div class="doc-line"></div>
-                <div class="doc-line"></div>
-                <div class="doc-line"></div>
-                <div class="doc-line short"></div>
-              </div>
+      <div class="col-lg-6">
+        <div class="chat-bubbles-container">
+          <div class="chat-bubble-wrap chat-bubble-1-wrap">
+            <div class="chat-bubble">
+              What is the Infrastructure Investment Act?
             </div>
-            <div class="doc-stack-item doc2">
-              <div class="doc-header">
-                <div class="doc-badge">Treaty</div>
-              </div>
-              <div class="doc-body">
-                <div class="doc-line"></div>
-                <div class="doc-line"></div>
-                <div class="doc-line short"></div>
-              </div>
+          </div>
+          <div class="chat-bubble-wrap chat-bubble-2-wrap">
+            <div class="chat-bubble">
+              How does this affect transportation funding?
             </div>
-            <div class="doc-stack-item doc3">
-              <div class="doc-header">
-                <div class="doc-badge">Executive Order</div>
-              </div>
-              <div class="doc-body">
-                <div class="doc-line"></div>
-                <div class="doc-line"></div>
-                <div class="doc-line"></div>
-                <div class="doc-line short"></div>
-              </div>
+          </div>
+          <div class="chat-bubble-wrap chat-bubble-3-wrap">
+            <div class="chat-bubble">
+              What are the climate provisions?
             </div>
-            <div class="magnifying-glass">
-              <div class="mag-handle"></div>
-              <div class="mag-glass"></div>
-              <div class="mag-shine"></div>
+          </div>
+          <div class="chat-bubble-wrap chat-bubble-4-wrap">
+            <div class="chat-bubble">
+              When will projects begin?
             </div>
           </div>
         </div>
@@ -692,112 +53,240 @@
   </div>
 </section>
 
-<!-- Interactive Spotlight Section with Live Document Conversation -->
+<!-- Document Spotlight Section with AI Questions on the Right Side -->
 <section id="spotlight" class="spotlight-section">
-  <div class="container position-relative">
+  <div class="container">
     <div class="spotlight-header">
-      <h2 class="spotlight-title animate__animated animate__fadeInLeft animate__delay-1s">Document Spotlight</h2>
+      <h2 class="spotlight-title">Document Spotlight</h2>
     </div>
     
-    <div class="spotlight-card animate__animated animate__fadeInUp">
-      <div class="spotlight-content">
-        <div class="spotlight-text">
-          <div class="animate__animated animate__fadeInLeft animate__delay-1s">
-            <span class="featured-tag">Must Read</span>
-            <h3 class="featured-card-title" style="font-size: 2.5rem; margin-bottom: 1rem;">Infrastructure Investment and Jobs Act</h3>
+    <div class="spotlight-container">
+      <!-- Main Document Content (Left Side) -->
+      <div class="spotlight-main-content">
+        <div class="spotlight-tag-container">
+          <span class="must-read-tag">Must Read</span>
+        </div>
+        
+        <h1 class="spotlight-document-title">Infrastructure Investment and Jobs Act</h1>
+        
+        <p class="spotlight-description">
+          This landmark legislation represents the largest long-term investment in America's infrastructure in nearly a century. The bipartisan bill addresses critical needs in transportation, utilities, and digital infrastructure.
+        </p>
+        
+        <a href="/documents/infrastructure-act/" class="read-document-btn">
+          Read the full document <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      
+      <!-- AI Questions Sidebar (Right Side) -->
+      <div class="spotlight-ai-sidebar">
+        <div class="ai-questions-container">
+          <div class="ai-questions-header">
+            <i class="fas fa-robot"></i> Ask the AI About This Document
           </div>
           
-          <p class="spotlight-description animate__animated animate__fadeIn animate__delay-2s">
-            This landmark legislation represents the largest long-term investment in America's infrastructure in nearly a century. The bipartisan bill addresses critical needs in transportation, utilities, and digital infrastructure.
-          </p>
-          
-          <!-- Live Chat Interface -->
-          <div class="document-chat-container animate__animated animate__fadeIn animate__delay-3s">
-            <div class="document-chat-header">
-              <div class="chat-title">
-                <i class="fas fa-robot"></i> AI Document Assistant
-              </div>
-              <div class="chat-status">
-                <span class="status-badge online">Available</span>
-              </div>
+          <div class="question-list">
+            <div class="question-item">
+              <i class="fas fa-comment-dots"></i> What are the main funding areas in this legislation?
             </div>
             
-            <div class="document-chat-messages">
-              <div class="chat-message system">
-                Ask me anything about the Infrastructure Investment and Jobs Act
-              </div>
-              
-              <div class="chat-message user first-question">
-                <div class="message-content">
-                  <p>What are the main funding areas in this legislation?</p>
-                </div>
-                <div class="message-time">Just now</div>
-              </div>
-              
-              <div class="typing-indicator initial-typing">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              
-              <div class="chat-message assistant first-answer hidden">
-                <div class="message-content">
-                  <p>The Infrastructure Investment and Jobs Act allocates funding to several key areas:</p>
-                  <ul>
-                    <li><strong>$110 billion</strong> for roads, bridges, and major infrastructure</li>
-                    <li><strong>$65 billion</strong> for broadband internet access</li>
-                    <li><strong>$55 billion</strong> for water infrastructure</li>
-                    <li><strong>$73 billion</strong> for power grid upgrades</li>
-                    <li><strong>$39 billion</strong> for public transit</li>
-                  </ul>
-                  <p>These investments aim to modernize America's infrastructure while creating jobs and improving economic competitiveness.</p>
-                </div>
-                <div class="message-time message-time-appearing">Just now</div>
-              </div>
-              
-              <div class="chat-message user second-question hidden">
-                <div class="message-content">
-                  <p>How does this act address climate change?</p>
-                </div>
-                <div class="message-time">Just now</div>
-              </div>
-              
-              <div class="typing-indicator second-typing hidden">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              
-              <div class="chat-message assistant second-answer hidden">
-                <div class="message-content">
-                  <p>The Infrastructure Act includes several climate-focused initiatives:</p>
-                  <ul>
-                    <li>$7.5 billion for a nationwide network of EV charging stations</li>
-                    <li>$5 billion for zero-emission buses</li>
-                    <li>$47 billion for climate resilience measures to protect against floods, wildfires, and droughts</li>
-                    <li>$21 billion for environmental remediation projects</li>
-                    <li>Significant funding for clean energy transmission and research</li>
-                  </ul>
-                  <p>While not primarily a climate bill, these provisions represent the largest federal investment in climate resilience to date.</p>
-                </div>
-                <div class="message-time message-time-appearing">Just now</div>
-              </div>
+            <div class="question-item">
+              <i class="fas fa-comment-dots"></i> How does this act address climate change?
             </div>
             
-            <div class="document-chat-input">
-              <input type="text" placeholder="Ask a question about this document..." disabled>
-              <button class="chat-send-button" disabled>
-                <i class="fas fa-paper-plane"></i>
-              </button>
+            <div class="question-item">
+              <i class="fas fa-comment-dots"></i> What are the implementation timelines?
+            </div>
+            
+            <div class="question-item">
+              <i class="fas fa-comment-dots"></i> How is the funding distributed across states?
             </div>
           </div>
           
-          <div class="mt-4 animate__animated animate__fadeIn animate__delay-4s">
-            <a href="/documents/infrastructure-act/" class="btn btn-primary btn-lg btn-with-icon">
-              <span>Read the full document</span>
-              <span class="btn-icon-wrapper">
-                <i class="fas fa-arrow-right"></i>
-              </span>
+          <a href="/documents/infrastructure-act/ask" class="ask-own-questions-btn">
+            <i class="fas fa-robot"></i> Ask Your Own Questions
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Documents Grid Section -->
+<section class="featured-documents-section">
+  <div class="container">
+    <div class="section-header animate__animated animate__fadeInUp">
+      <h2 class="section-title">Featured Documents</h2>
+      <p class="section-description">Our curated selection of the most impactful political documents you need to know about.</p>
+    </div>
+    
+    <div class="featured-documents-grid animate__animated animate__fadeIn animate__delay-1s">
+      <!-- Featured Card 1 - Large Card -->
+      <div class="featured-document featured-document-lg">
+        <div class="featured-document-inner">
+          <div class="featured-header">
+            <div class="featured-overlay">
+              <div class="featured-tags">
+                <span class="featured-tag">Legislation</span>
+                <span class="featured-tag highlight">Featured</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-content">
+            <h3 class="featured-title">Infrastructure Investment and Jobs Act</h3>
+            <p class="featured-description">
+              A comprehensive bill allocating $1.2 trillion to repair and rebuild America's infrastructure, addressing critical needs in transportation, utilities, and broadband internet access.
+            </p>
+            <div class="featured-meta">
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i> April 15, 2025
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-eye"></i> 3,245 views
+              </div>
+              <div class="meta-item">
+                <span class="importance-badge high">High Impact</span>
+              </div>
+            </div>
+            <a href="/documents/infrastructure-act/" class="featured-link">
+              <span>Explore Document</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Featured Card 2 -->
+      <div class="featured-document">
+        <div class="featured-document-inner">
+          <div class="featured-header" style="background-image: url('/api/placeholder/600/300')">
+            <div class="featured-overlay">
+              <div class="featured-tags">
+                <span class="featured-tag">Court Opinion</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-content">
+            <h3 class="featured-title">Citizens United v. Federal Election Commission</h3>
+            <p class="featured-description">
+              Supreme Court ruling addressing campaign finance restrictions and First Amendment protections for political speech.
+            </p>
+            <div class="featured-meta">
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i> April 5, 2025
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-eye"></i> 2,931 views
+              </div>
+              <div class="meta-item">
+                <span class="importance-badge medium">Medium Impact</span>
+              </div>
+            </div>
+            <a href="/documents/citizens-united/" class="featured-link">
+              <span>Explore Document</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Featured Card 3 -->
+      <div class="featured-document">
+        <div class="featured-document-inner">
+          <div class="featured-header" style="background-image: url('/api/placeholder/600/300')">
+            <div class="featured-overlay">
+              <div class="featured-tags">
+                <span class="featured-tag">International</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-content">
+            <h3 class="featured-title">Paris Climate Agreement</h3>
+            <p class="featured-description">
+              International treaty on climate change with goals to reduce global greenhouse gas emissions and limit global warming.
+            </p>
+            <div class="featured-meta">
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i> March 29, 2025
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-eye"></i> 1,456 views
+              </div>
+              <div class="meta-item">
+                <span class="importance-badge high">High Impact</span>
+              </div>
+            </div>
+            <a href="/documents/paris-agreement/" class="featured-link">
+              <span>Explore Document</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Featured Card 4 -->
+      <div class="featured-document">
+        <div class="featured-document-inner">
+          <div class="featured-header" style="background-image: url('/api/placeholder/600/300')">
+            <div class="featured-overlay">
+              <div class="featured-tags">
+                <span class="featured-tag">Executive Order</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-content">
+            <h3 class="featured-title">Climate Change Adaptation Order</h3>
+            <p class="featured-description">
+              Executive Order addressing federal agency responsibilities regarding climate change adaptation and resilience planning.
+            </p>
+            <div class="featured-meta">
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i> April 10, 2025
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-eye"></i> 1,784 views
+              </div>
+              <div class="meta-item">
+                <span class="importance-badge medium">Medium Impact</span>
+              </div>
+            </div>
+            <a href="/documents/climate-executive-order/" class="featured-link">
+              <span>Explore Document</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Featured Card 5 -->
+      <div class="featured-document">
+        <div class="featured-document-inner">
+          <div class="featured-header" style="background-image: url('/api/placeholder/600/300')">
+            <div class="featured-overlay">
+              <div class="featured-tags">
+                <span class="featured-tag">Legislation</span>
+              </div>
+            </div>
+          </div>
+          <div class="featured-content">
+            <h3 class="featured-title">Affordable Care Act Amendments</h3>
+            <p class="featured-description">
+              Comprehensive healthcare reform law designed to expand coverage, control costs, and improve healthcare delivery.
+            </p>
+            <div class="featured-meta">
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i> March 22, 2025
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-eye"></i> 2,187 views
+              </div>
+              <div class="meta-item">
+                <span class="importance-badge medium">Medium Impact</span>
+              </div>
+            </div>
+            <a href="/documents/affordable-care-act/" class="featured-link">
+              <span>Explore Document</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
             </a>
           </div>
         </div>
@@ -806,456 +295,444 @@
   </div>
 </section>
 
-<!-- Interactive 3D Flip Cards Section -->
-<section class="category-section">
+<!-- Most Popular Documents Section with Line Graphs and Question Lists -->
+<section class="popular-documents-section">
   <div class="container">
-    <h2 class="category-title animate__animated animate__fadeInUp">Recently Featured</h2>
+    <div class="section-header animate__animated animate__fadeInUp">
+      <h2 class="section-title">Most Popular Documents This Month</h2>
+      <p class="section-description">These documents are trending with our users based on views, shares, and AI interactions.</p>
+    </div>
     
-    <div class="row">
-      <!-- 3D Flip Card 1 -->
-      <div class="col-md-6 col-lg-4 mb-4 animate__animated animate__zoomIn animate__delay-1s">
-        <div class="featured-card-container">
-          <div class="featured-card">
-            <!-- Front of Card -->
-            <div class="featured-card-front">
-              <div class="featured-card-header" style="background-image: url('/api/placeholder/600/400')">
-                <div class="featured-card-overlay">
-                  <span class="featured-tag">Executive Order</span>
-                  <h3 class="featured-card-title">Climate Change Adaptation Order</h3>
-                </div>
+    <div class="popular-documents-container animate__animated animate__fadeIn animate__delay-1s">
+      <!-- Popular Document 1 -->
+      <div class="popular-document-card">
+        <div class="rank-badge">1</div>
+        <div class="popular-document-content">
+          <div class="document-info">
+            <h3 class="document-title">Infrastructure Investment and Jobs Act</h3>
+            <div class="document-category">
+              <span class="category-label">Legislation</span>
+            </div>
+            <div class="document-stats">
+              <div class="stat">
+                <i class="fas fa-eye"></i>
+                <span class="stat-value">3,245</span>
+                <span class="stat-label">Views</span>
               </div>
-              <div class="featured-card-body">
-                <p class="featured-card-description">
-                  Executive Order addressing federal agency responsibilities regarding climate change adaptation and resilience planning.
-                </p>
-                <div class="featured-card-footer">
-                  <div class="featured-card-date">
-                    <i class="far fa-calendar-alt"></i> April 10, 2025
-                  </div>
-                  <div class="flip-prompt">
-                    <small><i class="fas fa-sync-alt fa-spin-hover"></i> Flip for details</small>
-                  </div>
-                </div>
+              <div class="stat">
+                <i class="fas fa-share-alt"></i>
+                <span class="stat-value">578</span>
+                <span class="stat-label">Shares</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-comment-dots"></i>
+                <span class="stat-value">412</span>
+                <span class="stat-label">AI Chats</span>
               </div>
             </div>
-            
-            <!-- Back of Card -->
-            <div class="featured-card-back">
-              <h4>Key Highlights</h4>
-              <ul class="document-highlights">
-                <li>Requires all federal agencies to develop climate adaptation plans</li>
-                <li>Establishes an interagency climate resilience taskforce</li>
-                <li>Directs agencies to incorporate climate risk in federal investments</li>
+            <div class="popular-prompts">
+              <h4 class="prompts-title">Top Questions Asked</h4>
+              <ul class="prompts-list">
+                <li><i class="fas fa-question-circle"></i> What are the main funding areas in this legislation?</li>
+                <li><i class="fas fa-question-circle"></i> How does this act address climate change?</li>
+                <li><i class="fas fa-question-circle"></i> What are the implementation timelines?</li>
               </ul>
-              <div class="related-topics mt-3">
-                <span class="topic-badge">Climate Policy</span>
-                <span class="topic-badge">Federal Agencies</span>
-                <span class="topic-badge">Resilience</span>
-              </div>
-              <div class="mt-auto pt-3">
-                <a href="/documents/climate-executive-order/" class="btn btn-primary btn-sm">
-                  Read Full Document
-                </a>
-              </div>
             </div>
           </div>
+          <div class="activity-container">
+            <div class="graph-header">30-Day Activity</div>
+            <div class="mini-line-graph">
+              <svg width="180" height="80" viewBox="0 0 180 80" class="line-chart">
+                <defs>
+                  <linearGradient id="gradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(94, 43, 255, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(94, 43, 255, 0)" />
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="60" x2="180" y2="60" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="40" x2="180" y2="40" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="20" x2="180" y2="20" stroke="#e4e4e4" stroke-width="1" />
+                
+                <!-- Activity line and area -->
+                <path 
+                  d="M0,50 L25,48 L50,40 L75,45 L100,30 L125,25 L150,15 L175,10" 
+                  fill="none" 
+                  stroke="var(--color-electric-indigo)" 
+                  stroke-width="2.5"
+                  class="chart-line"
+                />
+                <path 
+                  d="M0,50 L25,48 L50,40 L75,45 L100,30 L125,25 L150,15 L175,10 V60 H0 Z" 
+                  fill="url(#gradient1)"
+                  class="chart-area"
+                />
+                
+                <!-- Data points -->
+                <circle cx="0" cy="50" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="25" cy="48" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="50" cy="40" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="75" cy="45" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="100" cy="30" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="125" cy="25" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="150" cy="15" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="175" cy="10" r="3" fill="var(--color-electric-indigo)" />
+              </svg>
+            </div>
+            <div class="trending-indicator up">
+              <i class="fas fa-arrow-up"></i> 27% increase
+            </div>
+          </div>
+          <a href="/documents/infrastructure-act/" class="popular-document-link">
+            <span>View Document</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
         </div>
       </div>
       
-      <!-- 3D Flip Card 2 -->
-      <div class="col-md-6 col-lg-4 mb-4 animate__animated animate__zoomIn animate__delay-2s">
-        <div class="featured-card-container">
-          <div class="featured-card">
-            <!-- Front of Card -->
-            <div class="featured-card-front">
-              <div class="featured-card-header" style="background-image: url('/api/placeholder/600/400')">
-                <div class="featured-card-overlay">
-                  <span class="featured-tag">Court Opinion</span>
-                  <h3 class="featured-card-title">Citizens United v. Federal Election Commission</h3>
-                </div>
+      <!-- Popular Document 2 -->
+      <div class="popular-document-card">
+        <div class="rank-badge">2</div>
+        <div class="popular-document-content">
+          <div class="document-info">
+            <h3 class="document-title">Citizens United v. Federal Election Commission</h3>
+            <div class="document-category">
+              <span class="category-label">Court Opinion</span>
+            </div>
+            <div class="document-stats">
+              <div class="stat">
+                <i class="fas fa-eye"></i>
+                <span class="stat-value">2,931</span>
+                <span class="stat-label">Views</span>
               </div>
-              <div class="featured-card-body">
-                <p class="featured-card-description">
-                  Supreme Court ruling addressing campaign finance restrictions and First Amendment protections for political speech.
-                </p>
-                <div class="featured-card-footer">
-                  <div class="featured-card-date">
-                    <i class="far fa-calendar-alt"></i> April 5, 2025
-                  </div>
-                  <div class="flip-prompt">
-                    <small><i class="fas fa-sync-alt fa-spin-hover"></i> Flip for details</small>
-                  </div>
-                </div>
+              <div class="stat">
+                <i class="fas fa-share-alt"></i>
+                <span class="stat-value">423</span>
+                <span class="stat-label">Shares</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-comment-dots"></i>
+                <span class="stat-value">385</span>
+                <span class="stat-label">AI Chats</span>
               </div>
             </div>
-            
-            <!-- Back of Card -->
-            <div class="featured-card-back">
-              <h4>Key Highlights</h4>
-              <ul class="document-highlights">
-                <li>Struck down restrictions on independent expenditures by corporations and unions</li>
-                <li>Established that corporations have First Amendment rights to political speech</li>
-                <li>Significantly impacted campaign finance regulations</li>
+            <div class="popular-prompts">
+              <h4 class="prompts-title">Top Questions Asked</h4>
+              <ul class="prompts-list">
+                <li><i class="fas fa-question-circle"></i> How did this ruling affect campaign finance?</li>
+                <li><i class="fas fa-question-circle"></i> What was the court's reasoning behind the decision?</li>
+                <li><i class="fas fa-question-circle"></i> What were the dissenting opinions?</li>
               </ul>
-              <div class="related-topics mt-3">
-                <span class="topic-badge">Campaign Finance</span>
-                <span class="topic-badge">First Amendment</span>
-                <span class="topic-badge">Supreme Court</span>
-              </div>
-              <div class="mt-auto pt-3">
-                <a href="/documents/citizens-united/" class="btn btn-primary btn-sm">
-                  Read Full Document
-                </a>
-              </div>
             </div>
           </div>
+          <div class="activity-container">
+            <div class="graph-header">30-Day Activity</div>
+            <div class="mini-line-graph">
+              <svg width="180" height="80" viewBox="0 0 180 80" class="line-chart">
+                <defs>
+                  <linearGradient id="gradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(94, 43, 255, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(94, 43, 255, 0)" />
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="60" x2="180" y2="60" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="40" x2="180" y2="40" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="20" x2="180" y2="20" stroke="#e4e4e4" stroke-width="1" />
+                
+                <!-- Activity line and area -->
+                <path 
+                  d="M0,40 L25,35 L50,30 L75,32 L100,25 L125,20 L150,22 L175,15" 
+                  fill="none" 
+                  stroke="var(--color-electric-indigo)" 
+                  stroke-width="2.5"
+                  class="chart-line"
+                />
+                <path 
+                  d="M0,40 L25,35 L50,30 L75,32 L100,25 L125,20 L150,22 L175,15 V60 H0 Z" 
+                  fill="url(#gradient2)"
+                  class="chart-area"
+                />
+                
+                <!-- Data points -->
+                <circle cx="0" cy="40" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="25" cy="35" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="50" cy="30" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="75" cy="32" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="100" cy="25" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="125" cy="20" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="150" cy="22" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="175" cy="15" r="3" fill="var(--color-electric-indigo)" />
+              </svg>
+            </div>
+            <div class="trending-indicator up">
+              <i class="fas fa-arrow-up"></i> 18% increase
+            </div>
+          </div>
+          <a href="/documents/citizens-united/" class="popular-document-link">
+            <span>View Document</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
         </div>
       </div>
       
-      <!-- 3D Flip Card 3 -->
-      <div class="col-md-6 col-lg-4 mb-4 animate__animated animate__zoomIn animate__delay-3s">
-        <div class="featured-card-container">
-          <div class="featured-card">
-            <!-- Front of Card -->
-            <div class="featured-card-front">
-              <div class="featured-card-header" style="background-image: url('/api/placeholder/600/400')">
-                <div class="featured-card-overlay">
-                  <span class="featured-tag">International</span>
-                  <h3 class="featured-card-title">Paris Climate Agreement</h3>
-                </div>
+      <!-- Popular Document 3 -->
+      <div class="popular-document-card">
+        <div class="rank-badge">3</div>
+        <div class="popular-document-content">
+          <div class="document-info">
+            <h3 class="document-title">Climate Change Adaptation Executive Order</h3>
+            <div class="document-category">
+              <span class="category-label">Executive Order</span>
+            </div>
+            <div class="document-stats">
+              <div class="stat">
+                <i class="fas fa-eye"></i>
+                <span class="stat-value">1,784</span>
+                <span class="stat-label">Views</span>
               </div>
-              <div class="featured-card-body">
-                <p class="featured-card-description">
-                  International treaty on climate change with goals to reduce global greenhouse gas emissions and limit global warming.
-                </p>
-                <div class="featured-card-footer">
-                  <div class="featured-card-date">
-                    <i class="far fa-calendar-alt"></i> March 29, 2025
-                  </div>
-                  <div class="flip-prompt">
-                    <small><i class="fas fa-sync-alt fa-spin-hover"></i> Flip for details</small>
-                  </div>
-                </div>
+              <div class="stat">
+                <i class="fas fa-share-alt"></i>
+                <span class="stat-value">312</span>
+                <span class="stat-label">Shares</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-comment-dots"></i>
+                <span class="stat-value">267</span>
+                <span class="stat-label">AI Chats</span>
               </div>
             </div>
-            
-            <!-- Back of Card -->
-            <div class="featured-card-back">
-              <h4>Key Highlights</h4>
-              <ul class="document-highlights">
-                <li>Sets goal to limit global warming to well below 2°C above pre-industrial levels</li>
-                <li>Requires countries to submit nationally determined contributions (NDCs)</li>
-                <li>Includes financial frameworks to assist developing nations</li>
+            <div class="popular-prompts">
+              <h4 class="prompts-title">Top Questions Asked</h4>
+              <ul class="prompts-list">
+                <li><i class="fas fa-question-circle"></i> What agencies are affected by this order?</li>
+                <li><i class="fas fa-question-circle"></i> How is success measured for these climate initiatives?</li>
+                <li><i class="fas fa-question-circle"></i> What funding has been allocated for implementation?</li>
               </ul>
-              <div class="related-topics mt-3">
-                <span class="topic-badge">Climate Change</span>
-                <span class="topic-badge">International Treaty</span>
-                <span class="topic-badge">Emissions</span>
-              </div>
-              <div class="mt-auto pt-3">
-                <a href="/documents/paris-agreement/" class="btn btn-primary btn-sm">
-                  Read Full Document
-                </a>
-              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Interactive Timeline for Key Legislative Documents -->
-<section class="category-section timeline-section">
-  <div class="container">
-    <h2 class="category-title animate__animated animate__fadeInUp">Key Legislative Documents</h2>
-    
-    <div class="document-timeline animate__animated animate__fadeIn animate__delay-1s">
-      <div class="timeline-navigation">
-        <button class="timeline-nav-btn prev-btn" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="timeline-years">
-          <span class="timeline-year active" data-year="2025">2025</span>
-          <span class="timeline-year" data-year="2024">2024</span>
-          <span class="timeline-year" data-year="2023">2023</span>
-          <span class="timeline-year" data-year="2022">2022</span>
-        </div>
-        <button class="timeline-nav-btn next-btn"><i class="fas fa-chevron-right"></i></button>
-      </div>
-      
-      <div class="timeline-container">
-        <div class="timeline-track">
-          <div class="timeline-line"></div>
-          
-          <!-- Timeline Nodes -->
-          <div class="timeline-node" style="--position: 15%;" data-date="Jan 2025">
-            <div class="node-dot"></div>
-            <div class="node-content left">
-              <div class="timeline-card">
-                <div class="timeline-card-header">
-                  <span class="document-tag">Legislation</span>
-                  <span class="document-date">January 15, 2025</span>
-                </div>
-                <h4 class="timeline-card-title">Digital Privacy Protection Act</h4>
-                <p class="timeline-card-description">
-                  Establishes new data privacy standards, enhances consumer rights, and creates stronger enforcement mechanisms.
-                </p>
-                <div class="timeline-card-progress">
-                  <div class="progress-label">Status: Committee Review</div>
-                  <div class="progress">
-                    <div class="progress-bar" style="width: 35%"></div>
-                  </div>
-                </div>
-                <a href="/documents/digital-privacy-act/" class="timeline-card-link">
-                  View Details <i class="fas fa-arrow-right"></i>
-                </a>
-              </div>
+          <div class="activity-container">
+            <div class="graph-header">30-Day Activity</div>
+            <div class="mini-line-graph">
+              <svg width="180" height="80" viewBox="0 0 180 80" class="line-chart">
+                <defs>
+                  <linearGradient id="gradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(94, 43, 255, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(94, 43, 255, 0)" />
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="60" x2="180" y2="60" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="40" x2="180" y2="40" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="20" x2="180" y2="20" stroke="#e4e4e4" stroke-width="1" />
+                
+                <!-- Activity line and area -->
+                <path 
+                  d="M0,55 L25,45 L50,40 L75,30 L100,25 L125,28 L150,25 L175,20" 
+                  fill="none" 
+                  stroke="var(--color-electric-indigo)" 
+                  stroke-width="2.5"
+                  class="chart-line"
+                />
+                <path 
+                  d="M0,55 L25,45 L50,40 L75,30 L100,25 L125,28 L150,25 L175,20 V60 H0 Z" 
+                  fill="url(#gradient3)"
+                  class="chart-area"
+                />
+                
+                <!-- Data points -->
+                <circle cx="0" cy="55" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="25" cy="45" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="50" cy="40" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="75" cy="30" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="100" cy="25" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="125" cy="28" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="150" cy="25" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="175" cy="20" r="3" fill="var(--color-electric-indigo)" />
+              </svg>
+            </div>
+            <div class="trending-indicator up">
+              <i class="fas fa-arrow-up"></i> 42% increase
             </div>
           </div>
-          
-          <div class="timeline-node" style="--position: 40%;" data-date="Mar 2025">
-            <div class="node-dot"></div>
-            <div class="node-content right">
-              <div class="timeline-card">
-                <div class="timeline-card-header">
-                  <span class="document-tag">Legislation</span>
-                  <span class="document-date">March 22, 2025</span>
-                </div>
-                <h4 class="timeline-card-title">Affordable Care Act Amendments</h4>
-                <p class="timeline-card-description">
-                  Expands healthcare coverage provisions, controls costs, and improves quality of the healthcare delivery system.
-                </p>
-                <div class="timeline-card-media">
-                  <div class="stat-item">
-                    <div class="stat-value">30M+</div>
-                    <div class="stat-label">Americans Covered</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value">15%</div>
-                    <div class="stat-label">Cost Reduction</div>
-                  </div>
-                </div>
-                <a href="/documents/affordable-care-act/" class="timeline-card-link">
-                  View Details <i class="fas fa-arrow-right"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <div class="timeline-node" style="--position: 65%;" data-date="Apr 2025">
-            <div class="node-dot"></div>
-            <div class="node-content left">
-              <div class="timeline-card">
-                <div class="timeline-card-header">
-                  <span class="document-tag">Legislation</span>
-                  <span class="document-tag featured">Featured</span>
-                  <span class="document-date">April 15, 2025</span>
-                </div>
-                <h4 class="timeline-card-title">Infrastructure Investment and Jobs Act</h4>
-                <p class="timeline-card-description">
-                  Bipartisan legislation representing the largest long-term investment in infrastructure in nearly a century.
-                </p>
-                <div class="timeline-card-media">
-                  <div class="image-preview">
-                    <img src="/api/placeholder/300/150" alt="Infrastructure preview" />
-                    <div class="image-overlay">
-                      <span>$1.2 Trillion Investment</span>
-                    </div>
-                  </div>
-                </div>
-                <a href="/documents/infrastructure-act/" class="timeline-card-link">
-                  View Details <i class="fas fa-arrow-right"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <div class="timeline-node" style="--position: 90%;" data-date="May 2025">
-            <div class="node-dot future"></div>
-            <div class="node-content right">
-              <div class="timeline-card future">
-                <div class="timeline-card-header">
-                  <span class="document-tag">Draft Legislation</span>
-                  <span class="document-date">Expected May 2025</span>
-                </div>
-                <h4 class="timeline-card-title">Clean Energy Innovation Act</h4>
-                <p class="timeline-card-description">
-                  Proposed legislation to accelerate development and deployment of clean energy technologies.
-                </p>
-                <div class="timeline-card-progress">
-                  <div class="progress-label">Status: In Development</div>
-                  <div class="progress">
-                    <div class="progress-bar" style="width: 15%"></div>
-                  </div>
-                </div>
-                <a href="#" class="timeline-card-link disabled">
-                  Coming Soon <i class="fas fa-clock"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Clearer Document Insights with Interactive Elements -->
-<section class="category-section insights-section">
-  <div class="container">
-    <div class="section-intro animate__animated animate__fadeIn">
-      <h2 class="category-title">Document Insights</h2>
-      <p class="mb-4">Explore key themes and policy priorities from our curated document collection:</p>
-    </div>
-    
-    <!-- Interactive Topic Cloud -->
-    <div class="topics-visualization-container mb-5 animate__animated animate__fadeIn animate__delay-1s">
-      <div class="topics-visualization">
-        <div class="topics-header">
-          <h3>Top Policy Areas</h3>
-          <div class="topics-legend">
-            <span class="legend-item"><span class="color-dot climate"></span> Climate</span>
-            <span class="legend-item"><span class="color-dot economy"></span> Economy</span>
-            <span class="legend-item"><span class="color-dot rights"></span> Civil Rights</span>
-            <span class="legend-item"><span class="color-dot international"></span> International</span>
-            <span class="legend-item"><span class="color-dot other"></span> Other</span>
-          </div>
-        </div>
-        
-        <div class="topics-grid">
-          <div class="topic-bar climate" style="--percentage: 85%;">
-            <div class="topic-name">Climate Action</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">85%</div>
-          </div>
-          <div class="topic-bar economy" style="--percentage: 78%;">
-            <div class="topic-name">Infrastructure</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">78%</div>
-          </div>
-          <div class="topic-bar rights" style="--percentage: 65%;">
-            <div class="topic-name">Healthcare</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">65%</div>
-          </div>
-          <div class="topic-bar economy" style="--percentage: 60%;">
-            <div class="topic-name">Economic Development</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">60%</div>
-          </div>
-          <div class="topic-bar rights" style="--percentage: 55%;">
-            <div class="topic-name">Civil Liberties</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">55%</div>
-          </div>
-          <div class="topic-bar international" style="--percentage: 48%;">
-            <div class="topic-name">International Relations</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">48%</div>
-          </div>
-          <div class="topic-bar other" style="--percentage: 42%;">
-            <div class="topic-name">Election Reform</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">42%</div>
-          </div>
-          <div class="topic-bar other" style="--percentage: 38%;">
-            <div class="topic-name">Privacy</div>
-            <div class="topic-bar-fill"></div>
-            <div class="topic-percentage">38%</div>
-          </div>
+          <a href="/documents/climate-executive-order/" class="popular-document-link">
+            <span>View Document</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
         </div>
       </div>
       
-      <div class="topic-detail-panel">
-        <div class="topic-detail climate-detail">
-          <h4>Climate Action</h4>
-          <p>Our most prevalent document theme focuses on climate change legislation, international agreements, and executive actions addressing carbon emissions, renewable energy, and climate resilience.</p>
-          <div class="related-documents">
-            <div class="related-document-chip">
-              <i class="fas fa-file-alt"></i> Paris Climate Agreement
+      <!-- Popular Document 4 -->
+      <div class="popular-document-card">
+        <div class="rank-badge">4</div>
+        <div class="popular-document-content">
+          <div class="document-info">
+            <h3 class="document-title">Paris Climate Agreement</h3>
+            <div class="document-category">
+              <span class="category-label">International Treaty</span>
             </div>
-            <div class="related-document-chip">
-              <i class="fas fa-file-alt"></i> Climate Adaptation Order
+            <div class="document-stats">
+              <div class="stat">
+                <i class="fas fa-eye"></i>
+                <span class="stat-value">1,456</span>
+                <span class="stat-label">Views</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-share-alt"></i>
+                <span class="stat-value">267</span>
+                <span class="stat-label">Shares</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-comment-dots"></i>
+                <span class="stat-value">198</span>
+                <span class="stat-label">AI Chats</span>
+              </div>
             </div>
-            <div class="related-document-chip">
-              <i class="fas fa-file-alt"></i> Clean Energy Act
+            <div class="popular-prompts">
+              <h4 class="prompts-title">Top Questions Asked</h4>
+              <ul class="prompts-list">
+                <li><i class="fas fa-question-circle"></i> Which countries are meeting their emissions targets?</li>
+                <li><i class="fas fa-question-circle"></i> What are the consequences for non-compliance?</li>
+                <li><i class="fas fa-question-circle"></i> How does the agreement address developing nations?</li>
+              </ul>
             </div>
           </div>
+          <div class="activity-container">
+            <div class="graph-header">30-Day Activity</div>
+            <div class="mini-line-graph">
+              <svg width="180" height="80" viewBox="0 0 180 80" class="line-chart">
+                <defs>
+                  <linearGradient id="gradient4" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(94, 43, 255, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(94, 43, 255, 0)" />
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="60" x2="180" y2="60" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="40" x2="180" y2="40" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="20" x2="180" y2="20" stroke="#e4e4e4" stroke-width="1" />
+                
+                <!-- Activity line and area -->
+                <path 
+                  d="M0,35 L25,38 L50,40 L75,35 L100,30 L125,28 L150,25 L175,22" 
+                  fill="none" 
+                  stroke="var(--color-electric-indigo)" 
+                  stroke-width="2.5"
+                  class="chart-line"
+                />
+                <path 
+                  d="M0,35 L25,38 L50,40 L75,35 L100,30 L125,28 L150,25 L175,22 V60 H0 Z" 
+                  fill="url(#gradient4)"
+                  class="chart-area"
+                />
+                
+                <!-- Data points -->
+                <circle cx="0" cy="35" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="25" cy="38" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="50" cy="40" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="75" cy="35" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="100" cy="30" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="125" cy="28" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="150" cy="25" r="3" fill="var(--color-electric-indigo)" />
+                <circle cx="175" cy="22" r="3" fill="var(--color-electric-indigo)" />
+              </svg>
+            </div>
+            <div class="trending-indicator up">
+              <i class="fas fa-arrow-up"></i> 8% increase
+            </div>
+          </div>
+          <a href="/documents/paris-agreement/" class="popular-document-link">
+            <span>View Document</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
         </div>
       </div>
-    </div>
-    
-    <!-- Interactive Statistics Cards with Clearer Layout -->
-    <div class="stats-dashboard mt-5 animate__animated animate__fadeIn animate__delay-2s">
-      <div class="stats-dashboard-header">
-        <h3>Document Analysis Overview</h3>
+      
+      <!-- Popular Document 5 -->
+      <div class="popular-document-card">
+        <div class="rank-badge">5</div>
+        <div class="popular-document-content">
+          <div class="document-info">
+            <h3 class="document-title">Affordable Care Act Amendments</h3>
+            <div class="document-category">
+              <span class="category-label">Legislation</span>
+            </div>
+            <div class="document-stats">
+              <div class="stat">
+                <i class="fas fa-eye"></i>
+                <span class="stat-value">1,287</span>
+                <span class="stat-label">Views</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-share-alt"></i>
+                <span class="stat-value">189</span>
+                <span class="stat-label">Shares</span>
+              </div>
+              <div class="stat">
+                <i class="fas fa-comment-dots"></i>
+                <span class="stat-value">156</span>
+                <span class="stat-label">AI Chats</span>
+              </div>
+            </div>
+            <div class="popular-prompts">
+              <h4 class="prompts-title">Top Questions Asked</h4>
+              <ul class="prompts-list">
+                <li><i class="fas fa-question-circle"></i> How do these amendments expand coverage?</li>
+                <li><i class="fas fa-question-circle"></i> What are the cost implications for taxpayers?</li>
+                <li><i class="fas fa-question-circle"></i> How does this affect insurance premiums?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="activity-container">
+            <div class="graph-header">30-Day Activity</div>
+            <div class="mini-line-graph">
+              <svg width="180" height="80" viewBox="0 0 180 80" class="line-chart">
+                <defs>
+                  <linearGradient id="gradient5" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(249, 86, 79, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(249, 86, 79, 0)" />
+                  </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="0" y1="60" x2="180" y2="60" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="40" x2="180" y2="40" stroke="#e4e4e4" stroke-width="1" />
+                <line x1="0" y1="20" x2="180" y2="20" stroke="#e4e4e4" stroke-width="1" />
+                
+                <!-- Activity line and area -->
+                <path 
+                  d="M0,20 L25,25 L50,22 L75,30 L100,35 L125,40 L150,45 L175,50" 
+                  fill="none" 
+                  stroke="var(--color-bittersweet)" 
+                  stroke-width="2.5"
+                  class="chart-line"
+                />
+                <path 
+                  d="M0,20 L25,25 L50,22 L75,30 L100,35 L125,40 L150,45 L175,50 V60 H0 Z" 
+                  fill="url(#gradient5)"
+                  class="chart-area"
+                />
+                
+                <!-- Data points -->
+                <circle cx="0" cy="20" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="25" cy="25" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="50" cy="22" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="75" cy="30" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="100" cy="35" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="125" cy="40" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="150" cy="45" r="3" fill="var(--color-bittersweet)" />
+                <circle cx="175" cy="50" r="3" fill="var(--color-bittersweet)" />
+              </svg>
+            </div>
+            <div class="trending-indicator down">
+              <i class="fas fa-arrow-down"></i> 12% decrease
+            </div>
+          </div>
+          <a href="/documents/affordable-care-act/" class="popular-document-link">
+            <span>View Document</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card documents-analyzed">
-          <div class="stat-icon">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">Documents Analyzed</div>
-            <div class="stat-value"><span class="counter" data-target="124">0</span></div>
-            <div class="stat-trend positive">
-              <i class="fas fa-arrow-up"></i> 12% this month
-            </div>
-          </div>
-        </div>
-        
-        <div class="stat-card featured-docs">
-          <div class="stat-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">Featured Documents</div>
-            <div class="stat-value"><span class="counter" data-target="18">0</span></div>
-            <div class="stat-trend positive">
-              <i class="fas fa-arrow-up"></i> 3 new additions
-            </div>
-          </div>
-        </div>
-        
-        <div class="stat-card words-analyzed">
-          <div class="stat-icon">
-            <i class="fas fa-align-left"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">Words Analyzed</div>
-            <div class="stat-value"><span class="counter" data-target="5.2">0</span><span class="unit">M</span></div>
-            <div class="stat-trend positive">
-              <i class="fas fa-arrow-up"></i> 300K this month
-            </div>
-          </div>
-        </div>
-        
-        <div class="stat-card clarity-score">
-          <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">Clarity Improvement</div>
-            <div class="stat-value"><span class="counter" data-target="92">0</span><span class="unit">%</span></div>
-            <div class="stat-trend positive">
-              <i class="fas fa-arrow-up"></i> 5% improvement
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA Section -->
-<section class="cta-section">
-  <div class="container">
-    <h2 class="cta-title">Need to understand a specific document?</h2>
-    <p class="cta-description">
-      Our AI can help decode complex political language and provide accessible explanations for any document. Access our complete library or submit your own document for analysis.
-    </p>
-    <div class="d-flex justify-content-center gap-3">
-      <a href="/documents/" class="button-primary">Browse Document Library</a>
-      <a href="/analyze/" class="button-secondary">Analyze Your Document</a>
     </div>
   </div>
 </section>
@@ -1264,6 +741,21 @@
 {% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Hero section document stack animation
+    const docStack = document.querySelector('.doc-stack-container');
+    if (docStack) {
+      const docItems = docStack.querySelectorAll('.doc-stack-item');
+      docItems.forEach((item, index) => {
+        setTimeout(() => {
+          item.classList.add('active');
+        }, 300 * (index + 1));
+      });
+      
+      setTimeout(() => {
+        document.querySelector('.magnifying-glass').classList.add('active');
+      }, 1500);
+    }
+    
     // Initialize Animate on Scroll
     const animateOnScroll = function() {
       const elements = document.querySelectorAll('.animate__animated:not(.animate__animated--triggered)');
@@ -1283,1117 +775,6 @@
     // Run once on load and then on scroll
     animateOnScroll();
     window.addEventListener('scroll', animateOnScroll);
-    
-    // Hero section document stack animation
-    const docStack = document.querySelector('.doc-stack-container');
-    if (docStack) {
-      const docItems = docStack.querySelectorAll('.doc-stack-item');
-      docItems.forEach((item, index) => {
-        setTimeout(() => {
-          item.classList.add('active');
-        }, 300 * (index + 1));
-      });
-      
-      setTimeout(() => {
-        document.querySelector('.magnifying-glass').classList.add('active');
-      }, 1500);
-    }
-    
-    // Simulate typing effect for the chat
-    setTimeout(() => {
-      document.querySelector('.first-answer').classList.remove('hidden');
-      document.querySelector('.initial-typing').classList.add('hidden');
-      
-      // Wait and then show second question
-      setTimeout(() => {
-        document.querySelector('.second-question').classList.remove('hidden');
-        
-        // Wait and then show typing for second answer
-        setTimeout(() => {
-          document.querySelector('.second-typing').classList.remove('hidden');
-          
-          // Wait and then show second answer
-          setTimeout(() => {
-            document.querySelector('.second-answer').classList.remove('hidden');
-            document.querySelector('.second-typing').classList.add('hidden');
-          }, 2000);
-        }, 1000);
-      }, 2000);
-    }, 2000);
-    
-    // Animate topic bars
-    const topicBars = document.querySelectorAll('.topic-bar');
-    const topicBarObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-bar');
-          topicBarObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.2 });
-    
-    topicBars.forEach(bar => {
-      topicBarObserver.observe(bar);
-    });
-    
-    // Topic bar interaction
-    topicBars.forEach(bar => {
-      bar.addEventListener('click', function() {
-        const topicName = this.querySelector('.topic-name').textContent;
-        const detailPanel = document.querySelector('.topic-detail-panel');
-        
-        // For demo purposes, only show the climate action detail
-        // In production, this would show different content based on which topic was clicked
-        detailPanel.classList.add('active');
-        
-        console.log(`User clicked on topic: ${topicName}`);
-      });
-    });
-    
-    // Timeline navigation
-    const timelineYears = document.querySelectorAll('.timeline-year');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
-    
-    timelineYears.forEach(year => {
-      year.addEventListener('click', function() {
-        // Remove active class from all years
-        timelineYears.forEach(y => y.classList.remove('active'));
-        
-        // Add active class to the clicked year
-        this.classList.add('active');
-        
-        // Enable/disable navigation buttons based on position
-        const currentIndex = Array.from(timelineYears).indexOf(this);
-        prevBtn.disabled = currentIndex === 0;
-        nextBtn.disabled = currentIndex === timelineYears.length - 1;
-        
-        // In a real implementation, this would load the correct timeline for the selected year
-        console.log(`Switched to timeline year: ${this.dataset.year}`);
-      });
-    });
-    
-    // Previous year button
-    prevBtn.addEventListener('click', function() {
-      const activeYear = document.querySelector('.timeline-year.active');
-      const prevYear = activeYear.previousElementSibling;
-      
-      if (prevYear) {
-        activeYear.classList.remove('active');
-        prevYear.classList.add('active');
-        
-        const currentIndex = Array.from(timelineYears).indexOf(prevYear);
-        prevBtn.disabled = currentIndex === 0;
-        nextBtn.disabled = false;
-        
-        console.log(`Switched to timeline year: ${prevYear.dataset.year}`);
-      }
-    });
-    
-    // Next year button
-    nextBtn.addEventListener('click', function() {
-      const activeYear = document.querySelector('.timeline-year.active');
-      const nextYear = activeYear.nextElementSibling;
-      
-      if (nextYear) {
-        activeYear.classList.remove('active');
-        nextYear.classList.add('active');
-        
-        const currentIndex = Array.from(timelineYears).indexOf(nextYear);
-        nextBtn.disabled = currentIndex === timelineYears.length - 1;
-        prevBtn.disabled = false;
-        
-        console.log(`Switched to timeline year: ${nextYear.dataset.year}`);
-      }
-    });
-    
-    // Counting animation for statistics
-    function animateCounter(counter, target, unit = '') {
-      let count = 0;
-      const duration = 2000; // 2 seconds
-      const framesPerSecond = 60;
-      const totalFrames = duration / 1000 * framesPerSecond;
-      const increment = target / totalFrames;
-      
-      // Check if target is a decimal number
-      const isDecimal = target % 1 !== 0;
-      
-      const timer = setInterval(() => {
-        count += increment;
-        if (count >= target) {
-          count = target;
-          clearInterval(timer);
-        }
-        
-        if (isDecimal) {
-          counter.textContent = count.toFixed(1);
-        } else {
-          counter.textContent = Math.floor(count);
-        }
-      }, 1000 / framesPerSecond);
-    }
-    
-    // Intersection Observer for counter animations
-    const counterObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const counter = entry.target;
-          const target = parseFloat(counter.dataset.target);
-          animateCounter(counter, target);
-          counterObserver.unobserve(counter);
-        }
-      });
-    }, { threshold: 0.1 });
-    
-    // Observe all counters
-    document.querySelectorAll('.counter').forEach(counter => {
-      counterObserver.observe(counter);
-    });
-    
-    // Timeline card interactions
-    const timelineCards = document.querySelectorAll('.timeline-card');
-    timelineCards.forEach(card => {
-      card.addEventListener('mouseenter', function() {
-        this.classList.add('expanded');
-      });
-      
-      card.addEventListener('mouseleave', function() {
-        this.classList.remove('expanded');
-      });
-    });
   });
 </script>
-
-<style>
-  /* Hero Section Styles */
-  .hero-section {
-    background: linear-gradient(135deg, var(--color-midnight-blue), var(--color-electric-indigo-dark));
-    color: white;
-    padding: var(--spacing-6) 0;
-    position: relative;
-    overflow: hidden;
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-  }
-  
-  .hero-content {
-    position: relative;
-    z-index: 2;
-  }
-  
-  .hero-title {
-    font-size: 3.5rem;
-    margin-bottom: var(--spacing-3);
-    font-weight: var(--font-bold);
-    line-height: 1.1;
-    background: linear-gradient(to right, white, #e4dfff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .hero-description {
-    font-size: 1.25rem;
-    margin-bottom: var(--spacing-4);
-    max-width: 600px;
-  }
-  
-  /* Document Stack Animation */
-  .hero-illustration {
-    position: relative;
-    height: 400px;
-  }
-  
-  .doc-stack-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .doc-stack-item {
-    position: absolute;
-    width: 220px;
-    height: 280px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(0deg) translateY(30px);
-    opacity: 0;
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
-  }
-  
-  .doc-stack-item.active {
-    opacity: 1;
-  }
-  
-  .doc1.active {
-    transform: translate(-50%, -50%) rotate(-5deg) translateY(0);
-    z-index: 3;
-  }
-  
-  .doc2.active {
-    transform: translate(-40%, -50%) rotate(5deg) translateY(0);
-    z-index: 2;
-  }
-  
-  .doc3.active {
-    transform: translate(-60%, -50%) rotate(-10deg) translateY(0);
-    z-index: 1;
-  }
-  
-  .doc-header {
-    height: 40px;
-    background: var(--color-soft-lavender);
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
-  }
-  
-  .doc-badge {
-    background: var(--color-electric-indigo);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  .doc-body {
-    padding: 15px;
-  }
-  
-  .doc-line {
-    height: 12px;
-    background: #eee;
-    margin-bottom: 10px;
-    border-radius: 3px;
-    width: 100%;
-  }
-  
-  .doc-line.short {
-    width: 70%;
-  }
-  
-  .magnifying-glass {
-    position: absolute;
-    top: 40%;
-    left: 60%;
-    width: 80px;
-    height: 80px;
-    z-index: 4;
-    opacity: 0;
-    transform: rotate(25deg) scale(0.8);
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s;
-  }
-  
-  .magnifying-glass.active {
-    opacity: 1;
-    transform: rotate(25deg) scale(1);
-  }
-  
-  .mag-handle {
-    position: absolute;
-    width: 20px;
-    height: 100px;
-    background: var(--color-bittersweet);
-    bottom: -60px;
-    right: 0;
-    border-radius: 10px;
-    transform: rotate(-45deg);
-  }
-  
-  .mag-glass {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    border: 8px solid var(--color-bittersweet);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
-  }
-  
-  .mag-shine {
-    position: absolute;
-    width: 20px;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    top: 15px;
-    left: 15px;
-    transform: rotate(-45deg);
-  }
-  
-  /* Live Chat Interface Styles */
-  .document-chat-container {
-    background-color: white;
-    border-radius: var(--radius-standard);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin: var(--spacing-4) 0;
-    border: 1px solid var(--color-soft-lavender);
-  }
-  
-  .document-chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: var(--color-electric-indigo);
-    color: white;
-  }
-  
-  .chat-title {
-    font-weight: var(--font-semibold);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .status-badge {
-    font-size: 12px;
-    padding: 3px 8px;
-    border-radius: 50px;
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .status-badge.online {
-    background-color: var(--color-aqua-mint);
-    color: var(--color-midnight-blue);
-  }
-  
-  .document-chat-messages {
-    padding: 16px;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: var(--color-arctic-white);
-  }
-  
-  .chat-message {
-    margin-bottom: 16px;
-    max-width: 80%;
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .chat-message.system {
-    background-color: var(--color-soft-lavender);
-    padding: 10px 16px;
-    border-radius: var(--radius-standard);
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 100%;
-    margin-bottom: 20px;
-    font-style: italic;
-    color: var(--color-midnight-blue);
-  }
-  
-  .chat-message.user {
-    margin-left: auto;
-    background-color: var(--color-electric-indigo-light);
-    border-radius: 18px 18px 4px 18px;
-    padding: 12px 16px;
-    color: white;
-  }
-  
-  .chat-message.assistant {
-    margin-right: auto;
-    background-color: white;
-    border-radius: 18px 18px 18px 4px;
-    padding: 12px 16px;
-    border: 1px solid var(--color-soft-lavender);
-    color: var(--color-midnight-blue);
-  }
-  
-  .message-content p {
-    margin-bottom: 10px;
-  }
-  
-  .message-content p:last-child {
-    margin-bottom: 0;
-  }
-  
-  .message-content ul {
-    margin: 10px 0;
-    padding-left: 20px;
-  }
-  
-  .message-time {
-    font-size: 11px;
-    margin-top: 5px;
-    opacity: 0.7;
-    text-align: right;
-  }
-  
-  .message-time-appearing {
-    animation: fadeIn 0.5s ease-out;
-  }
-  
-  .typing-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    background-color: white;
-    border-radius: 18px 18px 18px 4px;
-    width: fit-content;
-    border: 1px solid var(--color-soft-lavender);
-  }
-  
-  .typing-indicator span {
-    height: 8px;
-    width: 8px;
-    margin: 0 2px;
-    background-color: var(--color-neutral-grey);
-    border-radius: 50%;
-    display: inline-block;
-    animation: typing 1.4s infinite ease-in-out;
-  }
-  
-  .typing-indicator span:nth-child(1) {
-    animation-delay: 0s;
-  }
-  
-  .typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  
-  .typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-  
-  .document-chat-input {
-    display: flex;
-    padding: 12px 16px;
-    border-top: 1px solid var(--color-soft-lavender);
-    background-color: white;
-  }
-  
-  .document-chat-input input {
-    flex: 1;
-    padding: 10px 16px;
-    border: 1px solid var(--color-soft-lavender);
-    border-radius: 50px;
-    outline: none;
-    font-size: var(--font-size-body);
-  }
-  
-  .document-chat-input input:focus {
-    border-color: var(--color-electric-indigo);
-  }
-  
-  .chat-send-button {
-    width: 40px;
-    height: 40px;
-    background-color: var(--color-electric-indigo);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    margin-left: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  
-  .chat-send-button:disabled {
-    background-color: var(--color-neutral-grey);
-    cursor: not-allowed;
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
-  @keyframes typing {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* Document Insights Styles */
-  .topics-visualization-container {
-    background-color: white;
-    padding: var(--spacing-4);
-    border-radius: var(--radius-large);
-    box-shadow: var(--shadow-card);
-  }
-  
-  .topics-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-3);
-    flex-wrap: wrap;
-  }
-  
-  .topics-header h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--color-midnight-blue);
-  }
-  
-  .topics-legend {
-    display: flex;
-    gap: var(--spacing-2);
-    flex-wrap: wrap;
-  }
-  
-  .legend-item {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
-    color: var(--color-neutral-grey);
-  }
-  
-  .color-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 5px;
-    display: inline-block;
-  }
-  
-  .color-dot.climate { background-color: var(--color-electric-indigo); }
-  .color-dot.economy { background-color: var(--color-bittersweet); }
-  .color-dot.rights { background-color: var(--color-aqua-mint); }
-  .color-dot.international { background-color: var(--color-amber-alert); }
-  .color-dot.other { background-color: var(--color-neutral-grey); }
-  
-  .topics-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .topic-bar {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    position: relative;
-    cursor: pointer;
-    border-radius: var(--radius-standard);
-    transition: transform 0.2s ease;
-  }
-  
-  .topic-bar:hover {
-    transform: translateX(5px);
-  }
-  
-  .topic-name {
-    position: absolute;
-    left: 12px;
-    z-index: 2;
-    font-weight: var(--font-medium);
-    color: white;
-  }
-  
-  .topic-bar-fill {
-    height: 100%;
-    width: 0;
-    background-color: var(--color-electric-indigo);
-    border-radius: var(--radius-standard);
-    position: relative;
-    transition: width 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  
-  .topic-bar.animate-bar .topic-bar-fill {
-    width: var(--percentage);
-  }
-  
-  .topic-percentage {
-    position: absolute;
-    right: 12px;
-    font-weight: var(--font-bold);
-    color: var(--color-midnight-blue);
-  }
-  
-  .topic-bar.climate .topic-bar-fill { background-color: var(--color-electric-indigo); }
-  .topic-bar.economy .topic-bar-fill { background-color: var(--color-bittersweet); }
-  .topic-bar.rights .topic-bar-fill { background-color: var(--color-aqua-mint); }
-  .topic-bar.international .topic-bar-fill { background-color: var(--color-amber-alert); }
-  .topic-bar.other .topic-bar-fill { background-color: var(--color-neutral-grey); }
-  
-  .topic-detail-panel {
-    margin-top: var(--spacing-3);
-    background-color: var(--color-soft-lavender);
-    padding: var(--spacing-3);
-    border-radius: var(--radius-standard);
-    border-left: 4px solid var(--color-electric-indigo);
-    display: none;
-  }
-  
-  .topic-detail-panel.active {
-    display: block;
-    animation: fadeIn 0.5s ease-out;
-  }
-  
-  .topic-detail h4 {
-    margin-top: 0;
-    color: var(--color-electric-indigo);
-  }
-  
-  .related-documents {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: var(--spacing-2);
-  }
-  
-  .related-document-chip {
-    background-color: white;
-    color: var(--color-electric-indigo);
-    padding: 6px 12px;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Stats Dashboard Styles */
-  .stats-dashboard {
-    background-color: white;
-    border-radius: var(--radius-large);
-    box-shadow: var(--shadow-card);
-    padding: var(--spacing-4);
-    margin-bottom: var(--spacing-5);
-  }
-  
-  .stats-dashboard-header {
-    margin-bottom: var(--spacing-3);
-  }
-  
-  .stats-dashboard-header h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--color-midnight-blue);
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--spacing-3);
-  }
-  
-  .stat-card {
-    display: flex;
-    padding: var(--spacing-3);
-    background-color: var(--color-arctic-white);
-    border-radius: var(--radius-standard);
-    border-left: 4px solid var(--color-electric-indigo);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  }
-  
-  .stat-card.documents-analyzed { border-left-color: var(--color-electric-indigo); }
-  .stat-card.featured-docs { border-left-color: var(--color-bittersweet); }
-  .stat-card.words-analyzed { border-left-color: var(--color-aqua-mint); }
-  .stat-card.clarity-score { border-left-color: var(--color-amber-alert); }
-  
-  .stat-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background-color: var(--color-soft-lavender);
-    color: var(--color-electric-indigo);
-    border-radius: 12px;
-    margin-right: var(--spacing-2);
-    font-size: 1.5rem;
-  }
-  
-  .documents-analyzed .stat-icon { color: var(--color-electric-indigo); }
-  .featured-docs .stat-icon { color: var(--color-bittersweet); }
-  .words-analyzed .stat-icon { color: var(--color-aqua-mint); }
-  .clarity-score .stat-icon { color: var(--color-amber-alert); }
-  
-  .stat-content {
-    flex: 1;
-  }
-  
-  .stat-title {
-    font-size: 0.9rem;
-    color: var(--color-neutral-grey);
-    margin-bottom: 5px;
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: var(--font-bold);
-    color: var(--color-midnight-blue);
-    line-height: 1;
-    margin-bottom: 5px;
-  }
-  
-  .stat-trend {
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .stat-trend.positive {
-    color: var(--color-aqua-mint);
-  }
-  
-  .stat-trend.negative {
-    color: var(--color-bittersweet);
-  }
-  
-  /* Timeline Styles */
-  .timeline-section {
-    margin: var(--spacing-6) 0;
-  }
-  
-  .document-timeline {
-    position: relative;
-    margin-top: var(--spacing-4);
-  }
-  
-  .timeline-navigation {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: var(--spacing-4);
-    background-color: white;
-    padding: 12px 20px;
-    border-radius: 50px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  
-  .timeline-years {
-    display: flex;
-    gap: var(--spacing-3);
-    margin: 0 var(--spacing-3);
-  }
-  
-  .timeline-year {
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: var(--radius-standard);
-    transition: all 0.3s ease;
-    font-weight: var(--font-medium);
-    color: var(--color-neutral-grey);
-  }
-  
-  .timeline-year:hover {
-    background-color: var(--color-soft-lavender);
-    color: var(--color-electric-indigo);
-  }
-  
-  .timeline-year.active {
-    background-color: var(--color-electric-indigo);
-    color: white;
-  }
-  
-  .timeline-nav-btn {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background-color: var(--color-soft-lavender);
-    color: var(--color-electric-indigo);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .timeline-nav-btn:hover:not(:disabled) {
-    background-color: var(--color-electric-indigo);
-    color: white;
-  }
-  
-  .timeline-nav-btn:disabled {
-    background-color: var(--color-soft-lavender);
-    color: var(--color-neutral-grey);
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .timeline-container {
-    position: relative;
-    padding: 40px 0;
-  }
-  
-  .timeline-track {
-    position: relative;
-    height: 400px;
-  }
-  
-  .timeline-line {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 4px;
-    height: 100%;
-    background-color: var(--color-soft-lavender);
-    transform: translateX(-50%);
-    z-index: 1;
-  }
-  
-  .timeline-node {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    height: 100%;
-    width: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .timeline-node {
-    top: var(--position);
-  }
-  
-  .node-dot {
-    width: 20px;
-    height: 20px;
-    background-color: var(--color-electric-indigo);
-    border-radius: 50%;
-    margin-bottom: 10px;
-    z-index: 2;
-    box-shadow: 0 0 0 5px var(--color-soft-lavender);
-  }
-  
-  .node-dot.future {
-    background-color: var(--color-neutral-grey);
-  }
-  
-  .node-content {
-    position: absolute;
-    width: 350px;
-    top: -20px;
-  }
-  
-  .node-content.left {
-    right: 30px;
-    text-align: right;
-  }
-  
-  .node-content.right {
-    left: 30px;
-  }
-  
-  .timeline-card {
-    background-color: white;
-    border-radius: var(--radius-large);
-    box-shadow: var(--shadow-card);
-    padding: var(--spacing-3);
-    transition: all 0.3s ease;
-    position: relative;
-    opacity: 0.9;
-  }
-  
-  .timeline-card.expanded,
-  .timeline-card:hover {
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-    transform: translateY(-5px);
-    opacity: 1;
-  }
-  
-  .timeline-card.future {
-    border: 2px dashed var(--color-neutral-grey);
-    background-color: var(--color-arctic-white);
-  }
-  
-  .timeline-card::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    top: 20px;
-    transform: rotate(45deg);
-    z-index: -1;
-  }
-  
-  .node-content.left .timeline-card::before {
-    left: calc(100% - 10px);
-  }
-  
-  .node-content.right .timeline-card::before {
-    right: calc(100% - 10px);
-  }
-  
-  .timeline-card-header {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: var(--spacing-2);
-    align-items: center;
-  }
-  
-  .timeline-card-title {
-    margin: 0 0 var(--spacing-1) 0;
-    font-size: 1.25rem;
-    color: var(--color-midnight-blue);
-  }
-  
-  .timeline-card-description {
-    margin-bottom: var(--spacing-2);
-    color: var(--color-neutral-grey);
-    font-size: 0.95rem;
-  }
-  
-  .timeline-card-media {
-    margin: var(--spacing-2) 0;
-    border-radius: var(--radius-standard);
-    overflow: hidden;
-  }
-  
-  .image-preview {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-standard);
-  }
-  
-  .image-preview img {
-    width: 100%;
-    height: auto;
-    transition: transform 0.3s ease;
-  }
-  
-  .timeline-card:hover .image-preview img {
-    transform: scale(1.05);
-  }
-  
-  .image-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    color: white;
-    padding: 10px;
-    font-weight: var(--font-medium);
-  }
-  
-  .timeline-card-progress {
-    margin: var(--spacing-2) 0;
-  }
-  
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-  }
-  
-  .progress {
-    height: 8px;
-    background-color: var(--color-soft-lavender);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(to right, var(--color-electric-indigo), var(--color-bittersweet));
-    border-radius: 4px;
-  }
-  
-  .stat-item {
-    text-align: center;
-    padding: 10px;
-    background-color: var(--color-arctic-white);
-    border-radius: var(--radius-standard);
-    margin-bottom: 8px;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: var(--font-bold);
-    color: var(--color-electric-indigo);
-  }
-  
-  .stat-label {
-    font-size: 0.8rem;
-    color: var(--color-neutral-grey);
-  }
-  
-  .timeline-card-link {
-    display: inline-flex;
-    align-items: center;
-    color: var(--color-electric-indigo);
-    text-decoration: none;
-    font-weight: var(--font-medium);
-    margin-top: var(--spacing-2);
-    transition: color 0.3s ease;
-  }
-  
-  .timeline-card-link i {
-    margin-left: 5px;
-    transition: transform 0.3s ease;
-  }
-  
-  .timeline-card-link:hover {
-    color: var(--color-electric-indigo-light);
-  }
-  
-  .timeline-card-link:hover i {
-    transform: translateX(3px);
-  }
-  
-  .timeline-card-link.disabled {
-    color: var(--color-neutral-grey);
-    cursor: not-allowed;
-  }
-  
-  .document-tag.featured {
-    background-color: var(--color-amber-alert);
-  }
-  
-  @media (max-width: 768px) {
-    .timeline-line {
-      left: 30px;
-    }
-    
-    .timeline-node {
-      left: 30px;
-    }
-    
-    .node-content {
-      width: calc(100% - 50px);
-    }
-    
-    .node-content.left,
-    .node-content.right {
-      right: auto;
-      left: 50px;
-      text-align: left;
-    }
-    
-    .node-content.left .timeline-card::before,
-    .node-content.right .timeline-card::before {
-      right: auto;
-      left: -10px;
-    }
-    
-    .hero-title {
-      font-size: 2.5rem;
-    }
-  }
-</style>
 {% endblock extra_js %}
