@@ -16,6 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
+
 from general import views as g_views
 from document_manager import views as docs_views
 from donations_manager import views as dons_views
@@ -36,6 +39,7 @@ urlpatterns = [
     # Document Handling
     path("document-library/",       docs_views.document_library, name="document_library"),
     path("documents/",              docs_views.documents, name="documents"),
-    path("chat/",                   docs_views.chat, name="chat"),
+    path("documents/<slug:slug>/",  docs_views.document_chat, name="document_chat"),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

@@ -1,3 +1,228 @@
 from django.db import models
+from django.utils.text import slugify
+from django.core.exceptions import ValidationError
+import hashlib
 
-# Create your models here.
+from .validators import validate_document_file, generate_safe_filename
+
+
+class SluggedModel(models.Model):
+    """Abstract base model for auto-generating slugs"""
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        help_text="URL-friendly version of the name. Leave blank to auto-generate."
+    )
+    
+    def generate_unique_slug(self):
+        """Generate a unique slug for this model instance"""
+        original_slug = slugify(self.name)
+        slug = original_slug
+        counter = 1
+        
+        # Use self.__class__ to get the actual model class
+        model_class = self.__class__
+        
+        while model_class.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+            
+        return slug
+    
+    def save(self, *args, **kwargs):
+        """Override save to auto-generate slug if needed"""
+        if not self.slug or (self.pk and slugify(self.name) != self.slug.rsplit('-', 1)[0]):
+            self.slug = self.generate_unique_slug()
+        
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        abstract = True
+
+
+class Tag(SluggedModel):
+    """Tags for categorizing documents"""
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['name']),  # Added for search optimization
+        ]
+        ordering = ['name']
+
+
+class Document(SluggedModel):
+    """Document model for RAG system"""
+    is_active = models.BooleanField(default=False, null=False)
+    date = models.DateField(null=True, blank=True)
+    description = models.TextField(
+        help_text="Brief description of the document content"
+    )  # Renamed from 'descriptor' for clarity
+    
+    tags = models.ManyToManyField(
+        Tag, 
+        related_name='documents',  # More intuitive reverse relation name
+        blank=True
+    )
+    
+    file = models.FileField(
+        upload_to=generate_safe_filename,
+        validators=[validate_document_file],
+        help_text="Upload the document file (PDF, TXT, DOC, etc.). Max size: 100MB"
+    )
+    
+    # Additional metadata fields for RAG system
+    file_hash = models.CharField(
+        max_length=64, 
+        editable=False, 
+        blank=True,
+        help_text="SHA256 hash of the file for integrity checking"
+    )
+    
+    file_size = models.BigIntegerField(
+        editable=False,
+        null=True,
+        help_text="File size in bytes"
+    )
+    
+    mime_type = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="MIME type of the uploaded file"
+    )
+    
+    processing_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('processing', 'Processing'),
+            ('completed', 'Completed'),
+            ('failed', 'Failed'),
+        ],
+        default='pending',
+        help_text="Status of vector database processing"
+    )
+    
+    vector_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="ID reference in the vector database"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def clean(self):
+        """Validate the document before saving"""
+        # File validation is now handled by the field validators
+        if self.file and not self.date:
+            raise ValidationError("Date field is required when uploading a file")
+    
+    def save(self, *args, **kwargs):
+        """Extended save method with file processing"""
+        # Calculate file hash if file is being uploaded
+        if self.file and not self.file_hash:
+            self.file.seek(0)
+            file_hash = hashlib.sha256()
+            for chunk in iter(lambda: self.file.read(4096), b''):
+                file_hash.update(chunk)
+            self.file_hash = file_hash.hexdigest()
+            self.file.seek(0)
+            
+            # Store file size
+            self.file_size = self.file.size
+            
+            # Detect MIME type using Django's built-in method
+            import mimetypes
+            self.mime_type = mimetypes.guess_type(self.file.name)[0] or 'application/octet-stream'
+        
+        # Call parent's save method, which handles slug generation
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.name} ({self.processing_status})"
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['processing_status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['file_hash']),  # For duplicate detection
+        ]
+        ordering = ['-created_at']
+
+
+# Additional models for RAG system integration
+
+class DocumentChunk(models.Model):
+    """Represents a chunk of document text for vector processing"""
+    document = models.ForeignKey(
+        Document, 
+        on_delete=models.CASCADE, 
+        related_name='chunks'
+    )
+    chunk_index = models.IntegerField(help_text="Order of this chunk in the document")
+    content = models.TextField(help_text="The actual text content of this chunk")
+    vector_id = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="ID of this chunk in the vector database"
+    )
+    embedding_model = models.CharField(
+        max_length=50,
+        default='text-embedding-ada-002',
+        help_text="Model used for embedding generation"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['document', 'chunk_index']),
+            models.Index(fields=['vector_id']),
+        ]
+        ordering = ['document', 'chunk_index']
+        unique_together = [['document', 'chunk_index']]
+    
+    def __str__(self):
+        return f"{self.document.name} - Chunk {self.chunk_index}"
+
+
+class ProcessingLog(models.Model):
+    """Log processing events for documents"""
+    document = models.ForeignKey(
+        Document, 
+        on_delete=models.CASCADE, 
+        related_name='processing_logs'
+    )
+    event_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('upload_started', 'Upload Started'),
+            ('upload_completed', 'Upload Completed'),
+            ('processing_started', 'Processing Started'),
+            ('chunking_completed', 'Chunking Completed'),
+            ('embedding_completed', 'Embedding Completed'),
+            ('vectordb_upload_completed', 'Vector DB Upload Completed'),
+            ('processing_failed', 'Processing Failed'),
+        ]
+    )
+    message = models.TextField(blank=True)
+    error_traceback = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['document', 'created_at']),
+            models.Index(fields=['event_type']),
+        ]
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.document.name} - {self.event_type} at {self.created_at}"

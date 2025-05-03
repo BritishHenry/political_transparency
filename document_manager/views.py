@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
-# Create your views here.
+from .models import Document
+
 
 def document_library(request):
     context={}
@@ -10,6 +12,7 @@ def documents(request):
     context={}
     return render(request, "documents.html", context)
 
-def chat(request):
-    context={}
-    return render(request, "chat.html", context)
+def document_chat(request, slug):
+    document = get_object_or_404(Document, slug=slug)
+    context={"document":document}
+    return render(request, "document_chat.html", context)

@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.name }} - AI Document Explainer{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Document Hero Section */
+    .document-hero {
+        background-color: var(--color-soft-lavender);
+        padding: var(--spacing-2) 0;
+    }
+    
+    .document-hero-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-3);
+    }
+    
+    .document-hero-title {
+        font-size: var(--font-size-h4);
+        font-weight: var(--font-semibold);
+        color: var(--color-midnight-blue);
+        margin: 0;
+    }
+    
+    .document-status {
+        background-color: var(--color-electric-indigo);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: var(--font-size-small);
+        font-weight: var(--font-medium);
+        margin-left: var(--spacing-2);
+    }
+    
+    /* Chat Interface - Full Page Layout */
+    .chat-wrapper {
+        position: relative;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+        background-color: var(--color-arctic-white);
+        border-top: none;
+    }
+    
+    .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--spacing-4) var(--spacing-3) 120px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-3);
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .chat-message {
+        max-width: 70%;
+        padding: var(--spacing-2) var(--spacing-3);
+        border-radius: var(--radius-standard);
+        position: relative;
+    }
+    
+    .chat-message-user {
+        background-color: var(--color-electric-indigo);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .chat-message-ai {
+        background-color: var(--color-soft-lavender);
+        color: var(--color-midnight-blue);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .message-content {
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-body);
+    }
+    
+    .message-time {
+        font-size: var(--font-size-small);
+        opacity: 0.7;
+        margin-top: 4px;
+    }
+    
+    /* Welcome Message */
+    .welcome-message {
+        text-align: center;
+        padding: var(--spacing-5);
+        color: var(--color-neutral-grey);
+    }
+    
+    .welcome-title {
+        font-size: var(--font-size-h3);
+        font-weight: var(--font-semibold);
+        color: var(--color-midnight-blue);
+        margin-bottom: var(--spacing-2);
+    }
+    
+    .welcome-text {
+        max-width: 600px;
+        margin: 0 auto var(--spacing-4);
+        line-height: var(--line-height-body);
+    }
+    
+    .suggested-questions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-2);
+        justify-content: center;
+    }
+    
+    .suggestion-chip {
+        background-color: white;
+        border: 1px solid var(--color-soft-lavender);
+        padding: var(--spacing-1) var(--spacing-3);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all var(--transition-standard);
+        font-size: var(--font-size-small);
+    }
+    
+    .suggestion-chip:hover {
+        border-color: var(--color-electric-indigo);
+        background-color: var(--color-soft-lavender);
+    }
+    
+    /* Floating Chat Input - Contained */
+    .chat-input-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: var(--spacing-3);
+        background-color: transparent;
+        border-top: none;
+    }
+    
+    .chat-input-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: white;
+        border: 1px solid var(--color-soft-lavender);
+        border-radius: var(--radius-large);
+        padding: var(--spacing-3);
+        box-shadow: 0 2px 10px rgba(21, 27, 54, 0.05);
+    }
+    
+    .chat-input-wrapper {
+        display: flex;
+        gap: var(--spacing-2);
+        align-items: center;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: var(--spacing-2) var(--spacing-3);
+        border: 1px solid var(--color-neutral-grey);
+        border-radius: var(--radius-standard);
+        font-size: var(--font-size-body);
+        font-family: var(--font-primary);
+        transition: all var(--transition-standard);
+    }
+    
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--color-electric-indigo);
+        box-shadow: 0 0 0 3px rgba(94, 43, 255, 0.1);
+    }
+    
+    .chat-input:disabled {
+        background-color: var(--color-soft-lavender);
+        cursor: not-allowed;
+    }
+    
+    .send-button {
+        background-color: var(--color-electric-indigo);
+        color: white;
+        border: none;
+        padding: var(--spacing-2) var(--spacing-3);
+        border-radius: var(--radius-standard);
+        font-weight: var(--font-medium);
+        cursor: pointer;
+        transition: all var(--transition-standard);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-1);
+    }
+    
+    .send-button:hover {
+        background-color: var(--color-electric-indigo-light);
+        transform: translateY(-2px);
+    }
+    
+    .send-button:disabled {
+        background-color: var(--color-neutral-grey);
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    /* Status Bar */
+    .status-bar {
+        margin-bottom: var(--spacing-2);
+        padding: var(--spacing-1) var(--spacing-3);
+        background-color: var(--color-amber-alert);
+        color: var(--color-midnight-blue);
+        text-align: center;
+        font-size: var(--font-size-small);
+        font-weight: var(--font-medium);
+        border-radius: var(--radius-standard);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .chat-messages {
+            padding: var(--spacing-2);
+        }
+        
+        .chat-message {
+            max-width: 85%;
+        }
+        
+        .welcome-title {
+            font-size: var(--font-size-h4);
+        }
+        
+        .document-hero-inner {
+            padding: 0 var(--spacing-2);
+        }
+        
+        .chat-input-container {
+            padding: var(--spacing-2);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="document-hero">
+    <div class="document-hero-inner">
+        <h1 class="document-hero-title">
+            {{ document.name }}
+            {% if document.processing_status != 'completed' %}
+            <span class="document-status">{{ document.processing_status|capfirst }}</span>
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="chat-wrapper">
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome message - shown when no messages -->
+            <div class="welcome-message" id="welcomeMessage">
+                <h3 class="welcome-title">AI Document Assistant</h3>
+                <p class="welcome-text">
+                    I'm here to help you understand this document. Ask me anything about its content, 
+                    and I'll explain it in clear, accessible language.
+                </p>
+                <div class="suggested-questions">
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                        What is the main purpose of this document?
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                        Can you summarize the key points?
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                        What are the most important sections?
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                        Are there any controversial aspects?
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat messages will appear here -->
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="chat-input-inner">
+            <div class="status-bar" id="statusBar" style="display: none;">
+                AI Assistant is temporarily unavailable. Document processing system coming soon.
+            </div>
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    class="chat-input form-control" 
+                    id="chatInput" 
+                    placeholder="Ask me anything about this document..."
+                    {% if document.processing_status != 'completed' %}disabled{% endif %}
+                >
+                <button class="send-button" id="sendButton" {% if document.processing_status != 'completed' %}disabled{% endif %}>
+                    <span>Send</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get DOM elements
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const chatMessages = document.getElementById('chatMessages');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const statusBar = document.getElementById('statusBar');
+    
+    // Show status based on processing status
+    function checkDocumentStatus() {
+        const processingStatus = "{{ document.processing_status }}";
+        
+        if (processingStatus !== 'completed') {
+            statusBar.style.display = 'block';
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+        } else {
+            statusBar.style.display = 'none';
+            // Note: Input fields are already enabled/disabled by Django template logic
+        }
+    }
+    
+    // Function to send suggested questions
+    function sendSuggestion(chip) {
+        const question = chip.textContent.trim();
+        const processingStatus = "{{ document.processing_status }}";
+        
+        if (processingStatus === 'completed') {
+            // When AI is implemented, this would send the question
+            // For now, just populate the input
+            chatInput.value = question;
+            chatInput.focus();
+        } else {
+            checkDocumentStatus();
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        checkDocumentStatus();
+    });
+    
+    // Future: Handle sending messages
+    sendButton.addEventListener('click', function() {
+        const message = chatInput.value.trim();
+        if (message) {
+            // This would send the message to the AI
+            chatInput.value = '';
+        }
+    });
+    
+    // Future: Handle Enter key
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendButton.click();
+        }
+    });
+</script>
+{% endblock %}
