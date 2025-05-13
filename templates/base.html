@@ -30,6 +30,9 @@
 
     {% block extra_css %}
     <!-- Additional page-specific CSS can be added in child templates -->
+     <style>
+        
+     </style>
     {% endblock extra_css %}
 </head>
 
@@ -41,31 +44,15 @@
             <div class="container">
                 <a class="navbar-brand" href="/">
                     {% block logo %}
-                    <span>politicaltransparency.ai</span>
+                        <span>politicaltransparency.ai</span>
                     {% endblock logo %}
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
-                    aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarMain">
-                    {% block navigation %}
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about/">About</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/documents/">Documents</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                    </ul>
-                    {% endblock navigation %}
-                </div>
+                
+                {% block navigation %}
+                    <a href="/documents/"><button class="btn rounded-pill rounded-nav-btn">Documents Hub</button></a>
+                    <a href="/about/"><button class="btn rounded-pill rounded-nav-btn">About Us</button></a>
+                    <a href="/contact/"><button class="btn rounded-pill rounded-nav-btn">Contact Us</button></a>
+                {% endblock navigation %}
             </div>
         </nav>
     </header>
