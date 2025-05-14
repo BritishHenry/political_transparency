@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from general import views as g_views
 from document_manager import views as docs_views
 from donations_manager import views as dons_views
+from voting_manager import views as vote_views
 
 urlpatterns = [
     path("admin/",          admin.site.urls),
@@ -34,7 +35,12 @@ urlpatterns = [
     path("privacy-policy/",     g_views.privacy_policy, name="privacy_policy"),
 
     # Donations
-    path("donations/",              dons_views.donations, name="donations"),
+    path("donations/",              dons_views.donations_view, name="donations"),
+
+    # Voting for new docs
+    path("voting/",                     vote_views.voting_view, name="voting"),
+    path("voting/vote-document",        vote_views.vote_document, name="vote_document"),
+    path("voting/request-document",     vote_views.request_document, name="request_document"),
 
     # Document Handling
     path("document-library/",       docs_views.document_library, name="document_library"),

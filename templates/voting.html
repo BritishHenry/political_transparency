@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Moi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/voting.css' %}">
+{% endblock %}
+
+{% block main %}
+<div class="container py-5">
+    <!-- Main title and request button -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 mb-4">Vote for what you want to understand</h1>
+        <button type="button" class="button button-cta" data-bs-toggle="modal" data-bs-target="#requestDocumentModal">
+            Request a document
+        </button>
+    </div>
+    
+    <!-- Document Rankings -->
+    <div class="document-rankings">
+        {% if all_requested_documents %}
+            <div class="rankings-container">
+                {% for document in all_requested_documents %}
+                    <div class="ranking-card" data-document-id="{{ document.id }}">
+                        <div class="ranking-info">
+                            <div class="flex justify-between items-center">
+                                <h2>{{ document.document_name }}</h2>
+                                <span class="vote-count">{{ document.votes }} votes</span>
+                            </div>
+                            
+                            {% if document.document_url %}
+                                <p class="small mb-3">
+                                    <a href="{{ document.document_url }}" target="_blank" rel="noopener noreferrer">
+                                        View source document <i class="icon icon-sm" data-feather="external-link"></i>
+                                    </a>
+                                </p>
+                            {% endif %}
+                            
+                            <p class="small text-muted">Requested {{ document.requested_at|date:"F j, Y" }}</p>
+                        </div>
+                        
+                        <div class="ranking-action">
+                            <form method="post" action="{% url 'vote_document' %}" class="vote-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="document_id" value="{{ document.id }}">
+                                <button type="submit" class="vote-button {% if document.id in user_voted_documents %}voted{% endif %}" 
+                                        {% if document.id in user_voted_documents %}disabled{% endif %}>
+                                    <i class="icon icon-sm" data-feather="thumbs-up"></i>
+                                    <span class="vote-text">Upvote</span>
+                                    <span class="voted-text">Voted</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination if needed -->
+            {% if is_paginated %}
+                <nav aria-label="Document rankings pagination" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <p>No documents have been requested yet. Be the first to suggest a document!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Request Document Modal -->
+<div class="modal fade" id="requestDocumentModal" tabindex="-1" aria-labelledby="requestDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestDocumentModalLabel">Request a Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">Suggest political documents you believe should be accessible to everyone.</p>
+                
+                <form id="documentRequestForm" method="post" action="{% url 'request_document' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ request_form.document_name.id_for_label }}" class="form-label">
+                            Document Name or Description
+                        </label>
+                        {{ request_form.document_name }}
+                        <div class="invalid-feedback" id="document-name-error"></div>
+                        <small class="text-muted">Enter the name or a brief description of the document</small>
+                    </div>
+                    
+                    <div class="form-group mt-3">
+                        <label for="{{ request_form.document_url.id_for_label }}" class="form-label">
+                            Document URL (Optional)
+                        </label>
+                        {{ request_form.document_url }}
+                        <div class="invalid-feedback" id="document-url-error"></div>
+                        <small class="text-muted">If you have a link to the document, please provide it</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="documentRequestForm" class="button button-primary submit-request-btn" id="submitRequestBtn">Submit Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Success!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="success-icon mb-3">
+                        <i class="icon icon-xl" data-feather="check-circle"></i>
+                    </div>
+                    <p>Your document request has been submitted successfully!</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="button button-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Feather icons
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        // Setup AJAX for Django
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        // AJAX for document request form
+        const documentRequestForm = document.getElementById('documentRequestForm');
+        
+        if (documentRequestForm) {
+            documentRequestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(documentRequestForm);
+                const submitButton = document.getElementById('submitRequestBtn');
+                
+                // Disable the button and show loading state
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Submitting...';
+                
+                // Clear previous error messages
+                document.getElementById('document-name-error').textContent = '';
+                document.getElementById('document-url-error').textContent = '';
+                
+                fetch('{% url "request_document" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable the button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Submit Request';
+                    
+                    if (data.status === 'success') {
+                        // Hide the request modal
+                        const requestModal = bootstrap.Modal.getInstance(document.getElementById('requestDocumentModal'));
+                        requestModal.hide();
+                        
+                        // Reset form
+                        documentRequestForm.reset();
+                        
+                        // Show success modal
+                        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                        successModal.show();
+                        
+                        // Refresh the document list
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        // Show validation errors
+                        if (data.errors.document_name) {
+                            const errorElement = document.getElementById('document-name-error');
+                            errorElement.textContent = data.errors.document_name[0];
+                            document.querySelector('[name="document_name"]').classList.add('is-invalid');
+                        }
+                        
+                        if (data.errors.document_url) {
+                            const errorElement = document.getElementById('document-url-error');
+                            errorElement.textContent = data.errors.document_url[0];
+                            document.querySelector('[name="document_url"]').classList.add('is-invalid');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Submit Request';
+                    alert('An error occurred. Please try again later.');
+                });
+            });
+        }
+        
+        // AJAX for upvoting
+        const voteForms = document.querySelectorAll('.vote-form');
+        
+        voteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const documentId = this.querySelector('[name="document_id"]').value;
+                const voteButton = this.querySelector('.vote-button');
+                const voteCountElement = this.closest('.ranking-card').querySelector('.vote-count');
+                const currentVotes = parseInt(voteCountElement.textContent);
+                
+                // Disable the button immediately to prevent double-clicks
+                voteButton.disabled = true;
+                voteButton.classList.add('voting');
+                
+                fetch('{% url "vote_document" %}', {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update the vote count
+                        voteCountElement.textContent = `${data.votes} votes`;
+                        
+                        // Update button state
+                        voteButton.classList.add('voted');
+                        voteButton.disabled = true;
+                        
+                        // Optional: Visually reorder the list based on new vote counts
+                        // This is more complex and would require additional logic to sort the DOM elements
+                    } else {
+                        // If vote failed, re-enable the button
+                        voteButton.disabled = false;
+                        voteButton.classList.remove('voting');
+                        alert(data.message || 'Unable to vote. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    voteButton.disabled = false;
+                    voteButton.classList.remove('voting');
+                    alert('An error occurred. Please try again later.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

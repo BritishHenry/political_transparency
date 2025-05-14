@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Custom Apps
     "document_manager",
     "donations_manager",
+    "voting_manager",
 ]
 
 MIDDLEWARE = [
