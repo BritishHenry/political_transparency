@@ -13,11 +13,12 @@ class DocumentChunk(models.Model):
     vector_id = models.CharField(
         max_length=100, 
         blank=True,
+        null=True, # When chunk is initially saved, it won't have an embedding.
         help_text="ID of this chunk in the vector database"
     )
     embedding_model = models.CharField(
         max_length=50,
-        default='text-embedding-ada-002',
+        default='Not specified',
         help_text="Model used for embedding generation"
     )
     created_at = models.DateTimeField(auto_now_add=True)
