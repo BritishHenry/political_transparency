@@ -19,11 +19,10 @@
   1. HERO SECTION
 ===============================================*/
 .hero-section {
-  background: var(--color-electric-indigo);
+  background: linear-gradient(to right, var(--color-electric-indigo), var(--color-bittersweet)); 
   color: white;
   padding: var(--spacing-4) 0;
   position: relative;
-  overflow: hidden;
   min-height: 50vh;
   display: flex;
   align-items: center;
@@ -40,7 +39,7 @@
   margin-bottom: var(--spacing-3);
   font-weight: var(--font-bold);
   line-height: 1.1;
-  background: linear-gradient(to right, white, #e4dfff);
+  background: white;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

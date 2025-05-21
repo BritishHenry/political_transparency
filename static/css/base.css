@@ -965,13 +965,21 @@
    
    /* Main Header */
    .site-header {
-     background-color: var(--color-wisteria);
-     color: white;
-     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-     position: sticky;
-     top: 0;
-     z-index: 1000;
-   }
+      background-color: var(--color-arctic-white);
+      color: var(--color-jet);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .site-header span {
+      color: var(--color-jet);
+    }
+
+  .site-header.scrolled {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
    
    /* Bootstrap Navbar Override */
    .navbar {
@@ -1163,8 +1171,8 @@
       ----------------------------- */
    
    .site-footer {
-     background-color: var(--color-wisteria);
-     color: white;
+     background-color: var(--color-arctic-white);
+     color: var(--color-jet);
      padding: var(--spacing-5) 0 var(--spacing-3);
      height:auto;
      

@@ -6,17 +6,18 @@
 <style>
   /* Document page specific styles */
   .documents-header {
-    background-color: var(--color-soft-lavender);
+    background: linear-gradient(to right, var(--color-electric-indigo), var(--color-bittersweet)); 
     padding: var(--spacing-5) 0;
     margin-bottom: var(--spacing-4);
   }
 
   .documents-title {
-    color: var(--color-midnight-blue);
+    color: var(--color-arctic-white);
     margin-bottom: var(--spacing-2);
   }
 
   .documents-description {
+    color: var(--color-arctic-white);
     max-width: 720px;
   }
 
@@ -193,236 +194,35 @@
           <span class="search-icon">
             <i class="fas fa-search"></i>
           </span>
-          <input type="text" class="form-input" placeholder="Search documents...">
+          <input type="text" class="form-input" id="document-search" placeholder="Search documents...">
         </div>
       </div>
       <div class="col-md-6">
         <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-          <select class="form-select" style="width: auto;">
-            <option selected>All Categories</option>
-            <option>Legislation</option>
-            <option>Executive Orders</option>
-            <option>Court Opinions</option>
-            <option>International Treaties</option>
+          <select class="form-select" id="category-filter" style="width: auto;">
+            <option selected value="">All Categories</option>
+            <option value="legislation">Legislation</option>
+            <option value="executive-order">Executive Orders</option>
+            <option value="court-opinion">Court Opinions</option>
+            <option value="international">International Treaties</option>
           </select>
-          <select class="form-select" style="width: auto;">
-            <option selected>Sort By: Recent</option>
-            <option>Sort By: Oldest</option>
-            <option>Sort By: Title A-Z</option>
-            <option>Sort By: Most Viewed</option>
+          <select class="form-select" id="sort-option" style="width: auto;">
+            <option selected value="recent">Sort By: Recent</option>
+            <option value="oldest">Sort By: Oldest</option>
+            <option value="title">Sort By: Title A-Z</option>
+            <option value="most-viewed">Sort By: Most Viewed</option>
           </select>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Documents Grid -->
-  <div class="row row-equal mb-5">
-    
-    <!-- Document Card 1 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">Legislation</span>
-            <span class="document-tag document-tag-featured">Featured</span>
-          </div>
-          <h3 class="document-card-title">Infrastructure Investment and Jobs Act</h3>
-          <p class="document-card-description">
-            A comprehensive bill that addresses America's infrastructure needs, including transportation, broadband access, utilities, and environmental remediation.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 3,245</span>
-            <span><i class="fas fa-comment"></i> 156</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added April 15, 2025
-          </div>
-          <a href="/documents/infrastructure-act/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Document Card 2 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">Executive Order</span>
-          </div>
-          <h3 class="document-card-title">Climate Change Adaptation Executive Order</h3>
-          <p class="document-card-description">
-            Executive Order addressing federal agency responsibilities regarding climate change adaptation and resilience planning across government operations.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 1,784</span>
-            <span><i class="fas fa-comment"></i> 89</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added April 10, 2025
-          </div>
-          <a href="/documents/climate-executive-order/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Document Card 3 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">Court Opinion</span>
-            <span class="document-tag">Supreme Court</span>
-          </div>
-          <h3 class="document-card-title">Citizens United v. Federal Election Commission</h3>
-          <p class="document-card-description">
-            Supreme Court ruling addressing campaign finance restrictions and First Amendment protections for political speech by corporations and unions.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 2,931</span>
-            <span><i class="fas fa-comment"></i> 245</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added April 5, 2025
-          </div>
-          <a href="/documents/citizens-united/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Document Card 4 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">International</span>
-            <span class="document-tag">Treaty</span>
-          </div>
-          <h3 class="document-card-title">Paris Climate Agreement</h3>
-          <p class="document-card-description">
-            International treaty on climate change with goals to reduce global greenhouse gas emissions and limit global warming to well below 2°C above pre-industrial levels.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 1,456</span>
-            <span><i class="fas fa-comment"></i> 78</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added March 29, 2025
-          </div>
-          <a href="/documents/paris-agreement/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Document Card 5 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">Legislation</span>
-            <span class="document-tag">Healthcare</span>
-          </div>
-          <h3 class="document-card-title">Affordable Care Act</h3>
-          <p class="document-card-description">
-            Comprehensive healthcare reform law designed to expand coverage, control healthcare costs, and improve healthcare delivery system quality.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 2,187</span>
-            <span><i class="fas fa-comment"></i> 132</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added March 22, 2025
-          </div>
-          <a href="/documents/affordable-care-act/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Document Card 6 -->
-    <div class="col-md-6 col-lg-4 mb-4">
-      <div class="document-card card">
-        <div class="document-card-body">
-          <div class="mb-2">
-            <span class="document-tag">Bill</span>
-            <span class="document-tag">Draft</span>
-          </div>
-          <h3 class="document-card-title">Digital Privacy Protection Act</h3>
-          <p class="document-card-description">
-            Proposed legislation to establish new data privacy standards, enhance consumer rights regarding personal data, and create stronger enforcement mechanisms.
-          </p>
-          <div class="document-meta">
-            <span><i class="fas fa-eye"></i> 942</span>
-            <span><i class="fas fa-comment"></i> 67</span>
-          </div>
-        </div>
-        <div class="document-card-footer">
-          <div class="document-date">
-            <i class="far fa-calendar-alt"></i> Added March 15, 2025
-          </div>
-          <a href="/documents/digital-privacy-act/" class="button-secondary" style="padding: 6px 12px;">
-            View Document
-          </a>
-        </div>
-      </div>
-    </div>
-
+  <!-- Documents Grid Section - Now included from partial -->
+  <div id="documents-container">
+    {% include "partials/documents_grid.html" with documents=documents %}
   </div>
-
-  <!-- Pagination -->
-  <nav aria-label="Document pagination" class="my-5">
-    <ul class="pagination justify-content-center">
-      <li class="page-item disabled">
-        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-      </li>
-      <li class="page-item active" aria-current="page">
-        <a class="page-link" href="#">1</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="#">2</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="#">3</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="#">Next</a>
-      </li>
-    </ul>
-  </nav>
 </div>
 {% endblock main %}
 
 {% block extra_js %}
-<script>
-  // This could be expanded to include filtering/search functionality
-  document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchInput = document.querySelector('.search-box input');
-    searchInput.addEventListener('input', function() {
-      // This would normally connect to a backend search
-      console.log('Searching for:', this.value);
-    });
-    
-    // Additional document interaction logic could be added here
-  });
-</script>
 {% endblock extra_js %}

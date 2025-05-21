@@ -38,13 +38,13 @@ urlpatterns = [
     path("donations/",              dons_views.donations_view, name="donations"),
 
     # Voting for new docs
-    path("voting/",                     vote_views.voting_view, name="voting"),
-    path("voting/vote-document",        vote_views.vote_document, name="vote_document"),
-    path("voting/request-document",     vote_views.request_document, name="request_document"),
+    #path("voting/",                     vote_views.voting_view, name="voting"),
+    #path("voting/vote-document/",        vote_views.vote_document, name="vote_document"),
+    #path("voting/request-document/",     vote_views.request_document, name="request_document"),
 
     # Document Handling
     path("document-library/",       docs_views.document_library, name="document_library"),
-    path("documents/",              docs_views.documents, name="documents"),
+    #path("documents/",              docs_views.documents, name="documents"),
     path("documents/<slug:slug>/",  docs_views.document_chat, name="document_chat"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

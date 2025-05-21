@@ -129,7 +129,7 @@
 .mission-container {
     max-width: 1000px;
     margin: 0 auto;
-    background-color: white;
+    background-color: var(--color-arctic-white);
     border-radius: var(--radius-large);
     padding: var(--spacing-4);
     box-shadow: var(--shadow-card);
@@ -218,21 +218,13 @@
     right: 0;
     background-color: transparent;
     transition: background-color 0.4s ease;
-    z-index: 1000;
 }
 
 .site-header.scrolled {
-    background-color: var(--color-wisteria);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-arctic-white); /* Fully opaque */
 }
 
-.navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.85);
-}
 
-.navbar-dark .navbar-brand {
-    color: white;
-}
 .btn-browse{
   background-color: var(--color-soft-lavender);
   color: var(--color-electric-indigo);

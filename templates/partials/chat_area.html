@@ -1,0 +1,27 @@
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        <!-- Welcome message - shown when no messages -->
+        <div class="welcome-message" id="welcomeMessage">
+            <h3 class="welcome-title">Ask me anything and I will provide a sourced answer.<h3>
+            <p class="welcome-text">
+                We hope to remove biases and democratise understanding of important documents which define our times.
+            </p>
+            <div class="suggested-questions">
+                <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                    What is the main purpose of this document?
+                </div>
+                <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                    Can you summarize the key points?
+                </div>
+                <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                    What are the most important sections?
+                </div>
+                <div class="suggestion-chip" onclick="sendSuggestion(this)">
+                    Are there any controversial aspects?
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat messages will appear here -->
+    </div>
+</div>

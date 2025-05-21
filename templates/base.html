@@ -50,9 +50,8 @@
                 
                 {% block navigation %}
                     <div>
-                        <a href="/documents/"><button class="btn rounded-pill rounded-nav-btn">Documents Hub</button></a>
-                        <a href="/voting/"><button class="btn rounded-pill rounded-nav-btn">Vote for more</button></a>
-
+                        <a href="{% url 'document_library' %}"><button class="btn rounded-pill rounded-nav-btn">Document Library</button></a>
+                        <!-- <a href=""><button class="btn rounded-pill rounded-nav-btn">Vote for more</button></a> -->
                     </div>
                 {% endblock navigation %}
             </div>

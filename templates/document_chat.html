@@ -258,49 +258,21 @@
 </div>
 
 <div class="chat-wrapper">
-    <div class="chat-container">
-        <div class="chat-messages" id="chatMessages">
-            <!-- Welcome message - shown when no messages -->
-            <div class="welcome-message" id="welcomeMessage">
-                <h3 class="welcome-title">AI Document Assistant</h3>
-                <p class="welcome-text">
-                    I'm here to help you understand this document. Ask me anything about its content, 
-                    and I'll explain it in clear, accessible language.
-                </p>
-                <div class="suggested-questions">
-                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
-                        What is the main purpose of this document?
-                    </div>
-                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
-                        Can you summarize the key points?
-                    </div>
-                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
-                        What are the most important sections?
-                    </div>
-                    <div class="suggestion-chip" onclick="sendSuggestion(this)">
-                        Are there any controversial aspects?
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Chat messages will appear here -->
-        </div>
-    </div>
+    {% include "partials/chat_area.html" %}
+
     
     <div class="chat-input-container">
         <div class="chat-input-inner">
-            <div class="status-bar" id="statusBar" style="display: none;">
-                AI Assistant is temporarily unavailable. Document processing system coming soon.
-            </div>
             <div class="chat-input-wrapper">
+                <!-- Text/Chat input -->
                 <input 
                     type="text" 
                     class="chat-input form-control" 
                     id="chatInput" 
                     placeholder="Ask me anything about this document..."
-                    {% if document.processing_status != 'completed' %}disabled{% endif %}
                 >
-                <button class="send-button" id="sendButton" {% if document.processing_status != 'completed' %}disabled{% endif %}>
+                <!-- Send msg btn -->
+                <button class="send-button" id="sendButton">
                     <span>Send</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"></line>
