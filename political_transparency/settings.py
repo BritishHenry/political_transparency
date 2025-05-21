@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "document_manager",
     "donations_manager",
     "voting_manager",
+    "chat_manager",
 ]
 
 MIDDLEWARE = [
