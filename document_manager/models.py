@@ -6,60 +6,65 @@ import hashlib
 from .validators import validate_document_file, generate_safe_filename
 
 
-class SluggedModel(models.Model):
-    """Abstract base model for auto-generating slugs"""
+class Tag(models.Model):
+    """Tags for categorizing documents"""
+
     name = models.CharField(max_length=250)
     slug = models.SlugField(
-        max_length=100,
-        unique=True,
-        blank=True,
-        help_text="URL-friendly version of the name. Leave blank to auto-generate."
-    )
+            max_length=100, 
+            unique=True, 
+            blank=True,  # Make it optional in forms. So if leaft blank in admin creation, slug will generate automatically.
+            help_text="URL-friendly version of the name. Leave blank to auto-generate."
+        )
     
-    def generate_unique_slug(self):
-        """Generate a unique slug for this model instance"""
-        original_slug = slugify(self.name)
-        slug = original_slug
-        counter = 1
-        
-        # Use self.__class__ to get the actual model class
-        model_class = self.__class__
-        
-        while model_class.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-            slug = f"{original_slug}-{counter}"
-            counter += 1
-            
-        return slug
-    
-    def save(self, *args, **kwargs):
-        """Override save to auto-generate slug if needed"""
-        if not self.slug or (self.pk and slugify(self.name) != self.slug.rsplit('-', 1)[0]):
-            self.slug = self.generate_unique_slug()
-        
-        super().save(*args, **kwargs)
-    
-    class Meta:
-        abstract = True
-
-
-class Tag(SluggedModel):
-    """Tags for categorizing documents"""
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to automatically generate the slug field
+        from the company name if it's not set or if the name has changed.
+        """
+        from django.utils.text import slugify
+        
+        # Generate slug if it's missing or if name has changed
+        if not self.slug or not self.pk or slugify(self.name) != self.slug:
+            original_slug = slugify(self.name)
+            self.slug = original_slug
+            
+            # Handle potential slug collisions
+            # If a company with the same slug already exists, add a number suffix
+            counter = 1
+            while Tag.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
     
     class Meta:
         indexes = [
             models.Index(fields=['slug']),
-            models.Index(fields=['name']),  # Added for search optimization
+            models.Index(fields=['name']), 
         ]
         ordering = ['name']
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
 
 
-class Document(SluggedModel):
+class Document(models.Model):
     """Document model for RAG system"""
+
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(
+            max_length=100, 
+            unique=True, 
+            blank=True,  # Make it optional in forms. So if leaft blank in admin creation, slug will generate automatically.
+            help_text="URL-friendly version of the name. Leave blank to auto-generate."
+        )
+    
     is_active = models.BooleanField(default=False, null=False)
     date = models.DateField(null=True, blank=True)
     description = models.TextField(
@@ -143,7 +148,24 @@ class Document(SluggedModel):
             import mimetypes
             self.mime_type = mimetypes.guess_type(self.file.name)[0] or 'application/octet-stream'
         
-        # Call parent's save method, which handles slug generation
+        """
+        Override the save method to automatically generate the slug field
+        from the company name if it's not set or if the name has changed.
+        """
+        from django.utils.text import slugify
+        
+        # Generate slug if it's missing or if name has changed
+        if not self.slug or not self.pk or slugify(self.name) != self.slug:
+            original_slug = slugify(self.name)
+            self.slug = original_slug
+            
+            # Handle potential slug collisions
+            # If a company with the same slug already exists, add a number suffix
+            counter = 1
+            while Document.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -158,6 +180,8 @@ class Document(SluggedModel):
         ]
         ordering = ['-created_at']
 
+        verbose_name = "Document"
+        verbose_name_plural = "Documents"
 
 # Additional models for RAG system integration
 
