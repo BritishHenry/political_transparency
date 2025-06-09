@@ -9,8 +9,8 @@ This can also be used as a single source of truth for any key variables.
 '''
 from django.shortcuts import get_object_or_404
 
-from document_manager.chunking.utils import upload_file_to_openai, get_document_chunks, save_chunks
-from document_manager.embedding.utils import embed_chunk, save_embedding
+from services.ai.chunking.utils import upload_file_to_openai, get_document_chunks, save_chunks
+from services.ai.embedding.utils import embed_chunk, save_embedding
 
 from document_manager.models.chunking import DocumentChunk
 from document_manager.models.general import Document

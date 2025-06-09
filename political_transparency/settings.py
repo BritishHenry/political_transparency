@@ -29,6 +29,10 @@ DEBUG = False
 ALLOWED_HOSTS = []
 
 
+# Add the apps directory to Python path
+import sys
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,10 +44,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Custom Apps
-    "document_manager",
-    "donations_manager",
-    "voting_manager",
-    "chat_manager",
+    "apps.document_manager",
+    "apps.donations_manager",
+    "apps.voting_manager",
+    "apps.chat_manager",
 ]
 
 MIDDLEWARE = [
