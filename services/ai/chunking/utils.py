@@ -1,6 +1,6 @@
-from .system_prompt import get_chunks_prompt
-from document_manager.models.chunking import DocumentChunk
-from document_manager.models.general import Document
+from services.ai.chunking.system_prompts import get_chunks_prompt, get_structure_prompt
+from apps.document_manager.models.chunking import DocumentChunk
+from apps.document_manager.models.general import Document
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -21,10 +21,9 @@ def upload_file_to_openai(client, file):
 
     return uploaded_file
 
-def get_document_chunks(client, model, uploaded_file):
+def get_document_structure(client, model, uploaded_file):
     try:
-        # Only models that support both text and image inputs, such as gpt-4o, gpt-4o-mini, or o1, can accept PDF files as input.
-        chunks = client.responses.create(
+        structure = client.responses.create(
             model = model,
             input = [
                 {
@@ -36,21 +35,60 @@ def get_document_chunks(client, model, uploaded_file):
                         },
                         {
                             "type": "input_text",
-                            "text": get_chunks_prompt,
+                            "text": get_structure_prompt,
                         },
                     ]
                 }
-            ]
+            ],
+            response_format={ #Not sure if this will work.
+                "type": "json_schema",
+            }
         )
+
+        json_structure = json.loads(structure)
+
+    except Exception as e:
+        logger.warning(f"Failed to get document structure for the embedding with OpenAI | Error: {e}")
+
+    return json_structure
+
+def get_document_chunks(client, model, uploaded_file, document_structure):
+    try:
+        
+        chunks = {}
+        for level in document_structure:
+            
+            # Coherently appends the level to the end of the prompt, so the LLM knows how to chunk.
+            prompt = f"{get_chunks_prompt} {level}"
+
+            # Only models that support both text and image inputs, such as gpt-4o, gpt-4o-mini, or o1, can accept PDF files as input.
+            chunks[level] = client.responses.create(
+                model = model,
+                input = [
+                    {
+                        "role":"user",
+                        "content": [
+                            {
+                                "type": "input_file",
+                                "file_id": uploaded_file.id,
+                            },
+                            {
+                                "type": "input_text",
+                                "text": prompt,
+                            },
+                        ]
+                    }
+                ]
+            )
         
         # chunks returns a string with json inside
         # json.loads turns that into a (pythonic) json object
-        json_chunks = json.loads(chunks)
+        # json_chunks = json.loads(chunks)
 
     except Exception as e:
         logger.warning(f"Failed to get text chunks from document for the embedding with OpenAI | Error: {e}")
 
-    return json_chunks
+    return chunks
 
 def save_chunks(json_chunks, document_id):
     try:

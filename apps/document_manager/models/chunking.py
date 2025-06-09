@@ -8,7 +8,12 @@ class DocumentChunk(models.Model):
         on_delete=models.CASCADE, 
         related_name='chunks'
     )
+
     chunk_index = models.IntegerField(help_text="Order of this chunk in the document")
+    chunk_type = models.CharField(max_length=20) # eg 'sentence', 'paragraph', etc.
+    page_start = models.IntegerField()
+    page_end = models.IntegerField() 
+
     content = models.TextField(help_text="The actual text content of this chunk")
     vector_id = models.CharField(
         max_length=100, 
@@ -21,6 +26,9 @@ class DocumentChunk(models.Model):
         default='Not specified',
         help_text="Model used for embedding generation"
     )
+
+    metadata = models.JSONField(default=dict)  # Stores the flexible dict
+
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

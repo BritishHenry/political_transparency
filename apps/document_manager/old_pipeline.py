@@ -9,7 +9,7 @@ This can also be used as a single source of truth for any key variables.
 '''
 from django.shortcuts import get_object_or_404
 
-from services.ai.chunking.utils import upload_file_to_openai, get_document_chunks, save_chunks
+from services.ai.chunking.utils import upload_file_to_openai, get_document_structure, get_document_chunks, save_chunks
 from services.ai.embedding.utils import embed_chunk, save_embedding
 
 from document_manager.models.chunking import DocumentChunk
@@ -24,13 +24,9 @@ logger = logging.getLogger(__name__)
 
 class Control():
 
-    chunking_model = "gpt-4.1"
-    embedding_model = ""
-
     def __init__(self, chunking_model, embedding_model):
-        self.chunking_model = chunking_model
-        self.embedding_model = embedding_model
-
+        self.chunking_model = "gpt-4.1"
+        self.embedding_model = "text-embedding-3-small" # need to add
 
     def get_text_chunks(self, document_id):
         try:
@@ -39,7 +35,8 @@ class Control():
             client = OpenAI()
 
             uploaded_file = upload_file_to_openai(client, document.file)
-            json_chunks = get_document_chunks(client, self.chunking_model, uploaded_file) # Returns as json object
+            document_structure = get_document_structure(client, self.chunking_model, uploaded_file)
+            json_chunks = get_document_chunks(client, self.chunking_model, uploaded_file, document_structure) # Returns as json object
 
             saved_chunks = save_chunks(json_chunks, document_id) # Returns queryset
 
