@@ -26,13 +26,15 @@ logger = logging.getLogger(__name__)
 
 class Control():
 
-    def __init__(self, chunking_model, embedding_model):
+    def __init__(self):
         self.chunking_model = "gpt-4.1"
         self.embedding_model = "text-embedding-3-small" # need to add
 
     def chunk_document(self, document):
         try:
             llm_service = OpenAI()
-            chunker = PDFDocumentChunker(document, llm_service)
+            chunker = PDFDocumentChunker(document=document, llm_service=llm_service, chunking_model=self.chunking_model)
+            chunker.process_document()
         except Exception as e:
             logger.error("Failed to chunk document | Error msg: ", e)
+            

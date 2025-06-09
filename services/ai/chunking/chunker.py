@@ -49,7 +49,7 @@ class PDFDocumentChunker:
     The first page of a document is page 1, not page 0.
     """
     
-    def __init__(self, document_instance, llm_service=None):
+    def __init__(self, document_instance, llm_service=None, chunking_model=None):
         """
         Initialize the chunker with a Django Document model instance.
         
@@ -60,6 +60,7 @@ class PDFDocumentChunker:
         """
         self.document = document_instance  # Store the Django model instance
         self.llm_service = llm_service
+        self.chunking_model = chunking_model
         self.pages = []  # Store raw page text for reference
         self.chunks = {
             'sentences': [],
@@ -159,7 +160,7 @@ Guidelines:
 """
         
         try:
-            response = self.llm_service.responses.create(model="o4-mini", input=prompt)
+            response = self.llm_service.responses.create(model=self.chunking_model, input=prompt)
             return json.loads(response)
         except (json.JSONDecodeError, Exception) as e:
             print(f"LLM chunking failed for page {page_num}, falling back to simple chunking: {e}")
