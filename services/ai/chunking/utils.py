@@ -1,5 +1,5 @@
 from services.ai.chunking.system_prompts import get_chunks_prompt, get_structure_prompt
-from apps.document_manager.models.chunking import DocumentChunk
+from apps.document_manager.models.chunks import DocumentChunk
 from apps.document_manager.models.general import Document
 
 from django.shortcuts import get_object_or_404

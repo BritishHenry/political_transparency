@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 from services.ai.chunking.utils import upload_file_to_openai, get_document_structure, get_document_chunks, save_chunks
 from services.ai.embedding.utils import embed_chunk, save_embedding
 
-from document_manager.models.chunking import DocumentChunk
+from apps.document_manager.models.chunks import DocumentChunk
 from document_manager.models.general import Document
 
 from openai import OpenAI
