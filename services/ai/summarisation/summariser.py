@@ -1,9 +1,17 @@
 import json
+from json import JSONDecodeError
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 from django.db import transaction
 from django.utils import timezone
 
+from .prompts import (
+    generate_headline_prompts, 
+    generate_six_page_summary_prompts, 
+    identify_sections_from_headlines_prompts, 
+    generate_section_summary_prompts,
+    generate_document_summary_prompts
+    )
 
 @dataclass
 class HeadlineChunk:
@@ -29,7 +37,7 @@ class DocumentSummarizer:
     Handles the complete summarization pipeline for the Hierarchical RAG system.
     
     This is Step 2 of the processing pipeline:
-    1. Document Chunking → 2. Summary Generation (this class) → 3. Embedding → 4. Storage
+    1. Document Chunking → 2. Summary Generation (this class) → 3. Embedding → 4. Vector Storage
     
     Process flow:
     1. Generate headlines for 6-page chunks
@@ -61,257 +69,35 @@ class DocumentSummarizer:
         self.sections = []   # List of DocumentSection objects
         self.document_summary = None
         self.contents_page = None
-    
-    def generate_headline(self, chunk_content: str, page_start: int, page_end: int) -> str:
-        """
-        Generate a descriptive headline for a 6-page chunk.
-        
-        Headlines serve dual purposes:
-        1. Enable logical section grouping by the LLM
-        2. Create a navigable contents page for users
-        
-        Args:
-            chunk_content: Text content of the 6-page chunk
-            page_start: Starting page number (1-indexed)
-            page_end: Ending page number (1-indexed)
+
+    def call_openai(self, purpose, *args):
+
+        prompt_map = {
+            "generate_headline": generate_headline_prompts,
+            "generate_six_page_summary": generate_six_page_summary_prompts,
+            "identify_sections_from_headlines": identify_sections_from_headlines_prompts,
+            "generate_section_summary": generate_section_summary_prompts,
+            "generate_document_summary":generate_document_summary_prompts,
+        }
+
+        func = prompt_map.get(purpose)
+        if func:
+            instructions, input = func(*args)
+
+            try:
+                response = self.client.responses.create(
+                    model = self.model,
+                    instructions = instructions, 
+                    input = input
+                )
+            except Exception as e:
+                print("Error calling OpenAI | Error: ", e)
             
-        Returns:
-            A 10-15 word headline capturing the main theme
-        """
-        prompt = f"""
-Generate a descriptive headline for this section of a political document.
+            return response.output_text.strip()
+        else:
+            print("Error in call_openai: purpose not in prompt_map")
 
-Pages {page_start}-{page_end} content:
-{chunk_content[:2000]}...  # Truncate for context window
-
-Requirements:
-- 10-15 words that capture the main theme or focus
-- Clear and specific (not generic like "Introduction")
-- Include key topics, policies, or requirements covered
-- Written for a table of contents
-
-Example headlines:
-- "Eligibility Requirements for Small Business Tax Credits"
-- "Environmental Impact Assessment Procedures and Timeline"
-- "Enforcement Mechanisms and Penalty Structures"
-
-Return only the headline text, no quotes or formatting.
-"""
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,  # Lower temperature for consistency
-            max_tokens=50
-        )
-        
-        return response.choices[0].message.content.strip()
-    
-    def generate_six_page_summary(self, chunk_content: str, headline: str) -> str:
-        """
-        Generate a detailed summary of a 6-page chunk.
-        
-        These summaries are temporary and will be used to create
-        section summaries, then deleted to save storage.
-        
-        Args:
-            chunk_content: Full text of the 6-page chunk
-            headline: Previously generated headline for context
-            
-        Returns:
-            A 400-600 word summary of the chunk
-        """
-        prompt = f"""
-Create a detailed summary of this section of a political document.
-
-Section headline: "{headline}"
-
-Content:
-{chunk_content}
-
-Requirements:
-- 400-600 words capturing all key information
-- Include specific policies, requirements, or provisions
-- Note important definitions, exceptions, or conditions
-- Preserve technical terms and regulatory language where important
-- Maintain neutral, factual tone without interpretation
-- Structure with clear topic sentences and logical flow
-
-Focus on completeness - this summary will be used to create higher-level summaries later.
-"""
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
-            max_tokens=800
-        )
-        
-        return response.choices[0].message.content.strip()
-    
-    def identify_sections_from_headlines(self, headlines: List[HeadlineChunk]) -> List[DocumentSection]:
-        """
-        Use LLM to group headlines into logical document sections.
-        
-        This is the key innovation that makes section formation transparent
-        and debuggable - the LLM explicitly explains its grouping logic.
-        
-        Args:
-            headlines: List of HeadlineChunk objects with headlines
-            
-        Returns:
-            List of DocumentSection objects representing logical sections
-        """
-        # Format headlines for the prompt
-        headline_list = "\n".join([
-            f"{i+1}. \"{h.headline}\" (pages {h.page_start}-{h.page_end})"
-            for i, h in enumerate(headlines)
-        ])
-        
-        prompt = f"""
-Analyze these headlines from a political document and group them into logical sections.
-
-Headlines:
-{headline_list}
-
-Create logical document sections by grouping related headlines. Return a JSON object with:
-{{
-    "sections": [
-        {{
-            "section_id": "A",
-            "title": "Clear section title",
-            "headline_indices": [0, 1, 2],  // 0-based indices of headlines in this section
-            "reasoning": "Why these headlines belong together"
-        }},
-        ...
-    ]
-}}
-
-Guidelines:
-- Group headlines that cover related topics, policies, or document parts
-- Section titles should be clear and descriptive (2-5 words)
-- Sections should follow the document's natural flow
-- Include reasoning to make grouping logic transparent
-- Typical sections might include: Overview, Eligibility, Requirements, Procedures, Enforcement, Appendices
-"""
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=1000,
-            response_format={"type": "json_object"}  # Ensure JSON response
-        )
-        
-        section_data = json.loads(response.choices[0].message.content)
-        
-        # Convert JSON to DocumentSection objects
-        sections = []
-        for section in section_data['sections']:
-            doc_section = DocumentSection(
-                section_id=section['section_id'],
-                title=section['title'],
-                headline_indices=section['headline_indices']
-            )
-            sections.append(doc_section)
-        
-        return sections
-    
-    def generate_section_summary(self, section: DocumentSection, 
-                               headlines: List[HeadlineChunk]) -> str:
-        """
-        Generate a section summary from the 6-page summaries within that section.
-        
-        Args:
-            section: DocumentSection object defining the section
-            headlines: List of all HeadlineChunk objects (with summaries)
-            
-        Returns:
-            A 150-250 word section summary
-        """
-        # Gather relevant 6-page summaries for this section
-        relevant_summaries = []
-        for idx in section.headline_indices:
-            headline_chunk = headlines[idx]
-            if headline_chunk.summary:
-                relevant_summaries.append(f"Pages {headline_chunk.page_start}-{headline_chunk.page_end}:\n{headline_chunk.summary}")
-        
-        combined_summaries = "\n\n---\n\n".join(relevant_summaries)
-        
-        prompt = f"""
-Create a cohesive section summary from these related 6-page summaries.
-
-Section: "{section.title}"
-
-6-page summaries to synthesize:
-{combined_summaries}
-
-Requirements:
-- 150-250 words capturing the essence of this section
-- Synthesize information, don't just concatenate
-- Highlight key policies, requirements, or provisions
-- Maintain factual accuracy and neutral tone
-- Focus on what users need to know about this section
-- Write as a coherent summary, not a list
-
-This summary will be included in every chat response for context.
-"""
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.4,
-            max_tokens=400
-        )
-        
-        return response.choices[0].message.content.strip()
-    
-    def generate_document_summary(self, sections: List[DocumentSection]) -> str:
-        """
-        Generate the overall document summary from all section summaries.
-        
-        Args:
-            sections: List of DocumentSection objects with summaries
-            
-        Returns:
-            A 100-150 word document summary
-        """
-        # Compile all section summaries
-        section_summaries = []
-        for section in sections:
-            if section.summary:
-                section_summaries.append(f"{section.title}:\n{section.summary}")
-        
-        combined_sections = "\n\n".join(section_summaries)
-        
-        prompt = f"""
-Create a high-level document summary from these section summaries.
-
-Document: "{self.document.title}"
-
-Section summaries:
-{combined_sections}
-
-Requirements:
-- 100-150 words capturing the document's overall purpose and scope
-- Mention the type of document (legislation, policy, regulation, etc.)
-- Highlight the most important aspects users should know
-- Maintain neutral, factual tone
-- Write for someone who needs to quickly understand what this document is about
-
-This summary will be included in every chat response for context.
-"""
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.4,
-            max_tokens=250
-        )
-        
-        return response.choices[0].message.content.strip()
-    
-    def generate_contents_page(self, headlines: List[HeadlineChunk]) -> str:
+    def _generate_contents_page(self, headlines: List[HeadlineChunk]) -> str:
         """
         Generate a formatted contents page from all headlines.
         
@@ -340,6 +126,27 @@ This summary will be included in every chat response for context.
         
         return contents
     
+    def _parse_sections_json(self, response) -> List[DocumentSection]:
+        """
+        Turn the section string into JSON then into a list using the DocumentSection dataclass.
+        """
+        try:
+            data = json.loads(response)
+        except JSONDecodeError as exc:
+            raise ValueError("LLM returned invalid JSON for sections") from exc
+        
+        # Convert JSON to DocumentSection objects
+        sections = []
+        for section in data['sections']:
+            doc_section = DocumentSection(
+                section_id=section['section_id'],
+                title=section['title'],
+                headline_indices=section['headline_indices']
+            )
+            sections.append(doc_section)
+        
+        return sections
+    
     def process_document(self) -> Dict:
         """
         Main method to run the complete summarization pipeline.
@@ -367,7 +174,8 @@ This summary will be included in every chat response for context.
         # Step 1: Generate headlines for each 6-page chunk
         print("\n=== Generating Headlines ===")
         for chunk in six_page_chunks:
-            headline = self.generate_headline(
+            headline = self.call_openai(
+                'generate_headline',
                 chunk.content, 
                 chunk.page_start, 
                 chunk.page_end
@@ -386,30 +194,31 @@ This summary will be included in every chat response for context.
         print("\n=== Generating 6-Page Summaries ===")
         for headline_chunk in self.headlines:
             chunk = six_page_chunks.get(id=headline_chunk.chunk_id)
-            summary = self.generate_six_page_summary(chunk.content, headline_chunk.headline)
+            summary = self.call_openai('generate_six_page_summary',chunk.content, headline_chunk.headline)
             headline_chunk.summary = summary
             print(f"Generated summary for: {headline_chunk.headline}")
         
         # Step 3: Identify logical sections from headlines
         print("\n=== Identifying Document Sections ===")
-        self.sections = self.identify_sections_from_headlines(self.headlines)
+        response = self.call_openai('identify_sections_from_headlines',self.headlines)
+        self.sections = self._parse_sections_json(response)
         for section in self.sections:
             print(f"Section {section.section_id}: {section.title} (includes {len(section.headline_indices)} chunks)")
         
         # Step 4: Generate section summaries
         print("\n=== Generating Section Summaries ===")
         for section in self.sections:
-            section.summary = self.generate_section_summary(section, self.headlines)
+            section.summary = self.call_openai('generate_section_summary', section, self.headlines)
             print(f"Generated summary for section: {section.title}")
         
         # Step 5: Generate document summary
         print("\n=== Generating Document Summary ===")
-        self.document_summary = self.generate_document_summary(self.sections)
+        self.document_summary = self.call_openai('generate_document_summary', self.sections)
         print("Document summary generated")
         
         # Step 6: Generate contents page
         print("\n=== Generating Contents Page ===")
-        self.contents_page = self.generate_contents_page(self.headlines)
+        self.contents_page = self._generate_contents_page(self.headlines)
         print("Contents page generated")
         
         # Step 7: Save to database
@@ -436,58 +245,54 @@ This summary will be included in every chat response for context.
         from django.utils import timezone
         
         with transaction.atomic():
-            # Update document with contents page and metadata
-            # Assumes you've added a contents_page TextField to Document model
-            self.document.contents_page = self.contents_page
-            self.document.metadata = {
-                "headlines": [
-                    {
-                        "headline": h.headline,
-                        "page_start": h.page_start,
-                        "page_end": h.page_end
-                    } for h in self.headlines
-                ],
-                "sections": [
-                    {
-                        "section_id": s.section_id,
-                        "title": s.title,
-                        "headline_indices": s.headline_indices
-                    } for s in self.sections
-                ],
-                "processing_info": {
-                    "summarized_at": timezone.now().isoformat(),
-                    "model_used": self.model,
-                    "num_headlines": len(self.headlines),
-                    "num_sections": len(self.sections)
+            try:
+
+                # Update document with contents page and metadata
+                self.document.contents_page = self.contents_page
+                self.document.metadata = {
+                    "processing_info": {
+                        "summarized_at": timezone.now().isoformat(),
+                        "model_used": self.model,
+                        "num_headlines": len(self.headlines),
+                        "num_sections": len(self.sections)
+                    }
                 }
-            }
-            self.document.save(update_fields=['contents_page', 'metadata', 'updated_at'])
+                self.document.save(update_fields=['contents_page', 'metadata', 'updated_at'])
+            except Exception as e:
+                print("Error saving document dontents page or metadata | Error: ", e)
             
-            # Save document summary
-            doc_summary, created = DocumentSummary.objects.update_or_create(
-                document=self.document,
-                summary_type='document',
-                defaults={
-                    'content': self.document_summary,
-                    'summarisation_model': self.model,
-                    # 'word_count' is calculated via get_word_count() method
-                }
-            )
-            
-            # Save section summaries
-            for section in self.sections:
-                # Note: The model uses section_name, not section_id
-                # Since sections don't have page ranges anymore, we'll leave those null
-                section_summary, created = DocumentSummary.objects.update_or_create(
+            try:
+
+                # Save document summary
+                doc_summary, created = DocumentSummary.objects.update_or_create(
                     document=self.document,
-                    summary_type='section',
-                    section_name=section.title,  # Using the section title as the name
+                    summary_type='document',
                     defaults={
-                        'content': section.summary,
+                        'content': self.document_summary,
                         'summarisation_model': self.model,
-                        # page_start and page_end are left null since sections can be non-contiguous
+                        # 'word_count' is calculated via get_word_count() method
                     }
                 )
+            except Exception as e:
+                print("Error saving document summary | Error: ", e)
+
+            try:
+                # Save section summaries
+                for section in self.sections:
+                    # Note: The model uses section_name, not section_id
+                    # Since sections don't have page ranges anymore, we'll leave those null
+                    section_summary, created = DocumentSummary.objects.update_or_create(
+                        document=self.document,
+                        summary_type='section',
+                        section_name=section.title,  # Using the section title as the name
+                        defaults={
+                            'content': section.summary,
+                            'summarisation_model': self.model,
+                            # page_start and page_end are left null since sections can be non-contiguous
+                        }
+                    )
+            except Exception as e:
+                print("Error saving section summaries | Error: ", e)
             
             print(f"Updated document metadata and contents page for: {self.document.id}")
             print(f"Saved document summary: {doc_summary.id}")
