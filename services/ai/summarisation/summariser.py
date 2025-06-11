@@ -2,7 +2,7 @@ import json
 from json import JSONDecodeError
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 
 from .prompts import (
@@ -14,7 +14,7 @@ from .prompts import (
     )
 
 @dataclass
-class HeadlineChunk:
+class HeadlineChunk(): # this is added to after creation, so must be mutable.
     """Represents a 6-page chunk with its generated headline."""
     chunk_id: int
     headline: str
@@ -70,7 +70,7 @@ class DocumentSummarizer:
         self.document_summary = None
         self.contents_page = None
 
-    def call_openai(self, purpose, *args):
+    def _call_openai(self, purpose:str, *args) -> str:
 
         prompt_map = {
             "generate_headline": generate_headline_prompts,
@@ -81,21 +81,25 @@ class DocumentSummarizer:
         }
 
         func = prompt_map.get(purpose)
-        if func:
-            instructions, input = func(*args)
 
-            try:
-                response = self.client.responses.create(
-                    model = self.model,
-                    instructions = instructions, 
-                    input = input
-                )
-            except Exception as e:
-                print("Error calling OpenAI | Error: ", e)
+        if not func:
+            raise ValueError(f"Unknown purpose: {purpose}")
+
+        instructions, input = func(*args)
+
+        try:
+            response = self.client.responses.create(
+                model = self.model,
+                instructions = instructions, 
+                input = input
+            )
             
             return response.output_text.strip()
-        else:
-            print("Error in call_openai: purpose not in prompt_map")
+
+        except Exception as e:
+            print(f"LLM call failed for {purpose}: {e}")
+            raise RuntimeError(f"Failed to generate {purpose}") from e
+        
 
     def _generate_contents_page(self, headlines: List[HeadlineChunk]) -> str:
         """
@@ -131,21 +135,37 @@ class DocumentSummarizer:
         Turn the section string into JSON then into a list using the DocumentSection dataclass.
         """
         try:
-            data = json.loads(response)
-        except JSONDecodeError as exc:
-            raise ValueError("LLM returned invalid JSON for sections") from exc
-        
-        # Convert JSON to DocumentSection objects
-        sections = []
-        for section in data['sections']:
-            doc_section = DocumentSection(
-                section_id=section['section_id'],
-                title=section['title'],
-                headline_indices=section['headline_indices']
-            )
-            sections.append(doc_section)
-        
-        return sections
+
+            try:
+                data = json.loads(response)
+
+                # Validate expected structure
+
+                # check data is a dic and sections are in it
+                if not isinstance(data, dict) or 'sections' not in data:
+                    raise ValueError("Response missing 'sections' key")
+                
+                # check sections are a list
+                if not isinstance(data['sections'], list):
+                    raise ValueError("'sections' must be a list")
+                
+            except JSONDecodeError as exc:
+                raise ValueError("LLM returned invalid JSON for sections") from exc
+            
+            # Convert JSON to DocumentSection objects
+            sections = []
+            for section in data['sections']:
+                doc_section = DocumentSection(
+                    section_id=section['section_id'],
+                    title=section['title'],
+                    headline_indices=section['headline_indices']
+                )
+                sections.append(doc_section)
+            
+            return sections
+        except Exception as e:
+            print(f"Error parsing JSON response | Response: {response} | Error: {e}")
+            raise
     
     def process_document(self) -> Dict:
         """
@@ -165,6 +185,9 @@ class DocumentSummarizer:
             document=self.document,
             chunk_type='6_page'
         ).order_by('chunk_index')
+
+        # Store the query in a dic to prevent multiple DB queries
+        chunks_by_id = {chunk.id: chunk for chunk in six_page_chunks}
         
         if not six_page_chunks:
             raise ValueError(f"No 6-page chunks found for document {self.document.id}")
@@ -174,7 +197,7 @@ class DocumentSummarizer:
         # Step 1: Generate headlines for each 6-page chunk
         print("\n=== Generating Headlines ===")
         for chunk in six_page_chunks:
-            headline = self.call_openai(
+            headline = self._call_openai(
                 'generate_headline',
                 chunk.content, 
                 chunk.page_start, 
@@ -193,14 +216,14 @@ class DocumentSummarizer:
         # Step 2: Generate 6-page summaries (temporary)
         print("\n=== Generating 6-Page Summaries ===")
         for headline_chunk in self.headlines:
-            chunk = six_page_chunks.get(id=headline_chunk.chunk_id)
-            summary = self.call_openai('generate_six_page_summary',chunk.content, headline_chunk.headline)
+            chunk = chunks_by_id[headline_chunk.chunk_id]
+            summary = self._call_openai('generate_six_page_summary',chunk.content, headline_chunk.headline)
             headline_chunk.summary = summary
             print(f"Generated summary for: {headline_chunk.headline}")
         
         # Step 3: Identify logical sections from headlines
         print("\n=== Identifying Document Sections ===")
-        response = self.call_openai('identify_sections_from_headlines',self.headlines)
+        response = self._call_openai('identify_sections_from_headlines',self.headlines)
         self.sections = self._parse_sections_json(response)
         for section in self.sections:
             print(f"Section {section.section_id}: {section.title} (includes {len(section.headline_indices)} chunks)")
@@ -208,12 +231,12 @@ class DocumentSummarizer:
         # Step 4: Generate section summaries
         print("\n=== Generating Section Summaries ===")
         for section in self.sections:
-            section.summary = self.call_openai('generate_section_summary', section, self.headlines)
+            section.summary = self._call_openai('generate_section_summary', section, self.headlines)
             print(f"Generated summary for section: {section.title}")
         
         # Step 5: Generate document summary
         print("\n=== Generating Document Summary ===")
-        self.document_summary = self.call_openai('generate_document_summary', self.sections)
+        self.document_summary = self._call_openai('generate_document_summary', self.sections)
         print("Document summary generated")
         
         # Step 6: Generate contents page
@@ -244,8 +267,9 @@ class DocumentSummarizer:
         from apps.document_manager.models import DocumentSummary
         from django.utils import timezone
         
-        with transaction.atomic():
-            try:
+        try:
+
+            with transaction.atomic():
 
                 # Update document with contents page and metadata
                 self.document.contents_page = self.contents_page
@@ -257,11 +281,8 @@ class DocumentSummarizer:
                         "num_sections": len(self.sections)
                     }
                 }
-                self.document.save(update_fields=['contents_page', 'metadata', 'updated_at'])
-            except Exception as e:
-                print("Error saving document dontents page or metadata | Error: ", e)
+                self.document.save(update_fields=['contents_page', 'metadata'])
             
-            try:
 
                 # Save document summary
                 doc_summary, created = DocumentSummary.objects.update_or_create(
@@ -273,10 +294,7 @@ class DocumentSummarizer:
                         # 'word_count' is calculated via get_word_count() method
                     }
                 )
-            except Exception as e:
-                print("Error saving document summary | Error: ", e)
 
-            try:
                 # Save section summaries
                 for section in self.sections:
                     # Note: The model uses section_name, not section_id
@@ -291,13 +309,16 @@ class DocumentSummarizer:
                             # page_start and page_end are left null since sections can be non-contiguous
                         }
                     )
-            except Exception as e:
-                print("Error saving section summaries | Error: ", e)
             
-            print(f"Updated document metadata and contents page for: {self.document.id}")
-            print(f"Saved document summary: {doc_summary.id}")
-            print(f"Saved {len(self.sections)} section summaries")
-
+                print(f"Updated document metadata and contents page for: {self.document.id}")
+                print(f"Saved document summary: {doc_summary.id}")
+                print(f"Saved {len(self.sections)} section summaries")
+        except IntegrityError: # this is raised if there are *any* integrity errors in the satements in the transaction.
+            print("Integrity Error while saving items to database.")
+            raise
+        except Exception as e: # this is raised if there are *any* NON-integrity errors in the satements in the transaction.
+            print(f"Failed to save summaries for document {self.document.id}: {e}")
+            raise # Only non-IntegrityError exceptions are re-raised
 
 # Example usage:
 # from your_app.models import Document

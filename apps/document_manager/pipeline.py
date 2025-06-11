@@ -37,6 +37,7 @@ class Control():
             chunker.process_document()
         except Exception as e:
             logger.error("Failed to chunk document | Error msg: ", e)
+            raise
     
     def conduct_summarisations(self, document):
         try:
@@ -45,3 +46,4 @@ class Control():
             summariser.process_document()
         except Exception as e:
             logger.error("Failed to conduct summarisations | Error msg: ", e)
+            raise
