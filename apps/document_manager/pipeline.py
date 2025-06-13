@@ -21,19 +21,43 @@ from openai import OpenAI
 import logging
 logger = logging.getLogger(__name__)
 
-### Control class to orchestrate the whole document handling from upload to chat-ready.
+'''
+Control class to orchestrate the whole document handling from upload to chat-ready.
 
-class Control():
+The flow:
+    1) chunk the document into:
+        - sentances
+        - paragraphs
+        - pages
+        - 6 pages
+    2) summarise the 6 page summaries and create a headline
+    3) create a contents page from the headlines
+    4) use the headlines to order the doc into thematic sections
+    5) summarise the sections using 6 page summaries
+    6) delete the 6 page summaries
+    7) summarise the document using the section summaries
+    8) embed all of the below.
+
+Content that gets embedded:
+    - Every sentance
+    - Every paragraph
+    - Every page
+    - Every 6 pages
+    - Contents page using 6 page summarised headlines
+    - Section summaries
+    - Document summary
+'''
+class Control:
 
     def __init__(self):
         self.chunking_model = "gpt-4.1"
         self.summarisation_model = ""
-        self.embedding_model = "text-embedding-3-small" # need to add
+        self.embedding_model = "text-embedding-3-small" 
+        self.llm_service = OpenAI()
 
     def chunk_document(self, document):
         try:
-            llm_service = OpenAI()
-            chunker = PDFDocumentChunker(document=document, llm_service=llm_service, chunking_model=self.chunking_model)
+            chunker = PDFDocumentChunker(document=document, llm_service=self.llm_service, chunking_model=self.chunking_model)
             chunker.process_document()
         except Exception as e:
             logger.error("Failed to chunk document | Error msg: ", e)
@@ -41,9 +65,10 @@ class Control():
     
     def conduct_summarisations(self, document):
         try:
-            llm_service = OpenAI()
-            summariser = DocumentSummarizer(document_instance=document, llm_service=llm_service, model=self.summarisation_model)
+            summariser = DocumentSummarizer(document_instance=document, llm_service=self.llm_service, model=self.summarisation_model)
             summariser.process_document()
         except Exception as e:
             logger.error("Failed to conduct summarisations | Error msg: ", e)
             raise
+
+    
