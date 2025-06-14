@@ -7,7 +7,7 @@ class Embedder:
         self.document = document
         self.llm_service = llm_service
         self.embedding_model = embedding_model
-        self.collection_name = "testing" # setting this here for clarity. change to production when ready.
+        self.collection_name = document.slug # in development, use 'testing'
         self.vector_size = 1536
 
     def _initialise_vector_database_client(self):
@@ -27,7 +27,22 @@ class Embedder:
             model=self.embedding_model
         )
         return response.data[0].embedding
+    
+    def _create_collection(self, qdrant_client):
+        from qdrant_client.models import Distance, VectorParams
+        collection = qdrant_client.create_collection(
+            collection_name=self.collection_name, 
+            vectors_config=VectorParams(size=self.vector_size, distance=Distance.COSINE),
+            )
+        
+        if not collection:
+            raise ValueError("Error creating collection")
 
+        if not qdrant_client.collection_exists(collection_name=self.collection_name):
+            raise ValueError(f"Collection '{self.collection_name}' does not exist in Qdrant")
+        
+        return
+        
     def _save(self, data_to_save, qdrant_client):
         from qdrant_client.models import PointStruct
         from apps.document_manager.models import DocumentChunk, DocumentSummary
@@ -38,7 +53,7 @@ class Embedder:
         points_to_upsert = []
         chunks_to_update = []
         summaries_to_update = []
-        for data in data_to_save: #this implementation relied on the similarities in the DocumentChunk and DocumentSummary models
+        for data in data_to_save: #this implementation relies on the similarities in the DocumentChunk and DocumentSummary models
             vector_uuid = str(uuid.uuid4())
 
             point = PointStruct(
@@ -84,23 +99,20 @@ class Embedder:
             raise Exception(f"Error while saving data to Documentchunk, DocumentSummary or Qdrant | Error: {e}")
         
         return
-            
-    def _create_collection(self, qdrant_client):
-        from qdrant_client.models import Distance, VectorParams
-        collection = qdrant_client.create_collection(
-            collection_name=self.collection_name, 
-            vectors_config=VectorParams(size=self.vector_size, distance=Distance.COSINE),
-            )
-        
-        if not collection:
-            raise ValueError("Error creating collection")
-
-        if not qdrant_client.collection_exists(collection_name=self.collection_name):
-            raise ValueError(f"Collection '{self.collection_name}' does not exist in Qdrant")
-        
-        return
 
     def process_document(self):
+        '''
+        The flow:
+            1) Get the chunks and summaries
+            2) loop through the chunks and summaries and create an embedding for them
+            3) create dic of thechunks and summaries (data), prepared for saving
+            4) initialise the vecotr database
+            5) check the collection exists. if not, create one.
+            6) save the data:
+                - create PointStruct objects from the data 
+                - update the relevant object fields
+                use atomic transaction to save all data to qdrant and my database
+        '''
         from apps.document_manager.models import DocumentChunk, DocumentSummary
         chunks =    DocumentChunk.objects.filter(document=self.document)
         summaries = DocumentSummary.objects.filter(document=self.document)
