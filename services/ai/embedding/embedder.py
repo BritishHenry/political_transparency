@@ -15,6 +15,13 @@ class Embedder:
         )
         return response.data[0].embedding
 
+    def _save_embeddings_to_vector_database(self, embedding):
+        pass
+
+    def _save_vector_id(self):
+        pass
+        
+
     def process_document(self):
         from apps.document_manager.models import DocumentChunk, DocumentSummary
 
