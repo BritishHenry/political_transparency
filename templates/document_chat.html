@@ -36,63 +36,83 @@
     /* Chat Interface - Full Page Layout */
     .chat-wrapper {
         position: relative;
-        min-height: calc(100vh - 200px);
+        height: calc(100vh - 120px); /* Estimate: document hero height + padding */
         display: flex;
         flex-direction: column;
-        background-color: var(--color-arctic-white);
-        border-top: none;
     }
-    
+
     .chat-container {
         flex: 1;
         display: flex;
         flex-direction: column;
+        overflow: hidden; /* Prevent content from spilling out */
     }
-    
+
     .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: var(--spacing-4) var(--spacing-3) 120px;
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-3);
-        max-width: 1200px;
-        margin: 0 auto;
-        width: 100%;
-    }
-    
-    .chat-message {
-        max-width: 70%;
-        padding: var(--spacing-2) var(--spacing-3);
-        border-radius: var(--radius-standard);
-        position: relative;
-    }
-    
-    .chat-message-user {
-        background-color: var(--color-electric-indigo);
-        color: white;
-        align-self: flex-end;
-        border-bottom-right-radius: 4px;
-    }
-    
-    .chat-message-ai {
-        background-color: var(--color-soft-lavender);
-        color: var(--color-midnight-blue);
-        align-self: flex-start;
-        border-bottom-left-radius: 4px;
-    }
-    
-    .message-content {
-        font-size: var(--font-size-body);
-        line-height: var(--line-height-body);
-    }
-    
-    .message-time {
-        font-size: var(--font-size-small);
-        opacity: 0.7;
-        margin-top: 4px;
-    }
-    
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-4) 0 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chat-message-container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.chat-message {
+    display: flex;
+    padding: 0 var(--spacing-2);
+}
+
+.chat-message.user-message {
+    justify-content: flex-end;
+}
+
+.chat-message.ai-message {
+    justify-content: flex-start;
+}
+
+.chat-bubble {
+    max-width: 80%; /* Slightly less than full input */
+    background-color: #f1f0f0;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: 24px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chat-message.user-message .chat-bubble {
+    background-color: var(--color-electric-indigo);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message.ai-message .chat-bubble {
+    background-color: #f1f0f0;
+    color: black;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-text {
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+}
+
+.message-time {
+    font-size: var(--font-size-small);
+    opacity: 0.6;
+    margin-top: 4px;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+
+
     /* Welcome Message */
     .welcome-message {
         text-align: center;
@@ -227,6 +247,10 @@
         }
         
         .chat-message {
+            padding: 0 var(--spacing-2);
+        }
+
+        .chat-bubble {
             max-width: 85%;
         }
         
@@ -264,6 +288,8 @@
     <div class="chat-input-container">
         <div class="chat-input-inner">
             <div class="chat-input-wrapper">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
                 <!-- Text/Chat input -->
                 <input 
                     type="text" 
@@ -271,6 +297,7 @@
                     id="chatInput" 
                     placeholder="Ask me anything about this document..."
                 >
+                
                 <!-- Send msg btn -->
                 <button class="send-button" id="sendButton">
                     <span>Send</span>
@@ -284,65 +311,78 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-    // Get DOM elements
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const chatMessages = document.getElementById('chatMessages');
-    const welcomeMessage = document.getElementById('welcomeMessage');
-    const statusBar = document.getElementById('statusBar');
-    
-    // Show status based on processing status
-    function checkDocumentStatus() {
-        const processingStatus = "{{ document.processing_status }}";
-        
-        if (processingStatus !== 'completed') {
-            statusBar.style.display = 'block';
-            chatInput.disabled = true;
-            sendButton.disabled = true;
-        } else {
-            statusBar.style.display = 'none';
-            // Note: Input fields are already enabled/disabled by Django template logic
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
         }
+        return cookieValue;
     }
-    
-    // Function to send suggested questions
-    function sendSuggestion(chip) {
-        const question = chip.textContent.trim();
-        const processingStatus = "{{ document.processing_status }}";
-        
-        if (processingStatus === 'completed') {
-            // When AI is implemented, this would send the question
-            // For now, just populate the input
-            chatInput.value = question;
-            chatInput.focus();
-        } else {
-            checkDocumentStatus();
-        }
-    }
-    
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-        checkDocumentStatus();
-    });
-    
-    // Future: Handle sending messages
-    sendButton.addEventListener('click', function() {
-        const message = chatInput.value.trim();
-        if (message) {
-            // This would send the message to the AI
-            chatInput.value = '';
+
+    const csrftoken = getCookie("csrftoken");
+
+    // Automatically add CSRF token to all AJAX requests
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
         }
     });
-    
-    // Future: Handle Enter key
-    chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+
+    function scrollToBottom() {
+        const chatBox = document.getElementById("chatMessages");
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    $(document).ready(function () {
+        scrollToBottom(); // Auto-scroll on page load
+
+        $("#sendButton").on("click", function (e) {
             e.preventDefault();
-            sendButton.click();
-        }
+
+            const message = $("#chatInput").val().trim();
+            if (!message) return;
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'chat_view' slug %}",
+                data: {
+                    message: message                
+                },
+                success: function (response) {
+                    if (response.success) {
+                        const msg = response.message;
+                        const newMsgHtml = `
+                            <div class="chat-message user-message">
+                                <div class="chat-bubble">
+                                    <div class="chat-text">${msg.text}</div>
+                                    <div class="message-time">${msg.timestamp}</div>
+                                </div>
+                            </div>
+                        `;
+                        $("#chatMessages .chat-message-container").append(newMsgHtml);
+                        $("#chatInput").val("").focus();
+                        // Auto-scroll to bottom
+                        scrollToBottom();
+                    }
+                },
+                error: function () {
+                    alert("Something went wrong. Please try again.");
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

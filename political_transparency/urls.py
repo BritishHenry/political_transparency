@@ -23,6 +23,7 @@ from general import views as g_views
 from document_manager import views as docs_views
 from donations_manager import views as dons_views
 from voting_manager import views as vote_views
+from chat_manager import views as chat_views
 
 urlpatterns = [
     path("admin/",          admin.site.urls),
@@ -45,7 +46,7 @@ urlpatterns = [
     # Document Handling
     path("document-library/",       docs_views.document_library, name="document_library"),
     #path("documents/",              docs_views.documents, name="documents"),
-    path("documents/<slug:slug>/",  docs_views.document_chat, name="document_chat"),
+    path("documents/<slug:slug>/",  chat_views.ChatView.as_view(), name="chat_view"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
