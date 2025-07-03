@@ -47,6 +47,7 @@ urlpatterns = [
     path("document-library/",       docs_views.document_library, name="document_library"),
     #path("documents/",              docs_views.documents, name="documents"),
     path("documents/<slug:slug>/",  chat_views.ChatView.as_view(), name="chat_view"),
+    path("documents/<slug:slug>/response/<slug:task_id>/",  chat_views.get_response, name="get_response"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

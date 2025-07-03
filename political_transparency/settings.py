@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # Installed apps
+    "django_q",
+
     # Custom Apps
     "apps.document_manager",
     "apps.donations_manager",
@@ -66,6 +69,18 @@ QDRANT_API_KEY = config('QDRANT_API_KEY')
 QDRANT_POLITICAL_TRANSPARENCY_ENDPOINT = config('QDRANT_POLITICAL_TRANSPARENCY_ENDPOINT')
 
 ROOT_URLCONF = "political_transparency.urls"
+
+# Django_q configuration
+Q_CLUSTER = {
+    'name': 'default',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',  # Using Django ORM as the broker
+}
 
 TEMPLATES = [
     {
