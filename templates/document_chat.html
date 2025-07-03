@@ -9,20 +9,20 @@
         background-color: var(--color-soft-lavender);
         padding: var(--spacing-2) 0;
     }
-    
+
     .document-hero-inner {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 var(--spacing-3);
     }
-    
+
     .document-hero-title {
         font-size: var(--font-size-h4);
         font-weight: var(--font-semibold);
         color: var(--color-midnight-blue);
         margin: 0;
     }
-    
+
     .document-status {
         background-color: var(--color-electric-indigo);
         color: white;
@@ -32,11 +32,12 @@
         font-weight: var(--font-medium);
         margin-left: var(--spacing-2);
     }
-    
+
     /* Chat Interface - Full Page Layout */
     .chat-wrapper {
         position: relative;
-        height: calc(100vh - 120px); /* Estimate: document hero height + padding */
+        height: calc(100vh - 120px);
+        /* Estimate: document hero height + padding */
         display: flex;
         flex-direction: column;
     }
@@ -45,75 +46,81 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow: hidden; /* Prevent content from spilling out */
+        overflow: hidden;
+        /* Prevent content from spilling out */
     }
 
     .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-4) 0 140px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--spacing-4) 0 140px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-.chat-message-container {
-    width: 100%;
-    max-width: 1200px;
-    padding: 0 var(--spacing-3);
-}
+    .chat-message-container {
+        width: 100%;
+        max-width: 1200px;
+        padding: 0 var(--spacing-3);
+    }
 
-/* Target the compound classes correctly */
-.chat-message {
-    min-width: 100%;  /* Make messages full width */
-    display: flex;
-    padding: 0;
-}
+    /* Target the compound classes correctly */
+    .chat-message {
+        min-width: 100%;
+        /* Make messages full width */
+        display: flex;
+        padding: 0;
+    }
 
-.chat-message.user-message {
-    justify-content: flex-end;  /* Align user messages to right */
-}
+    .chat-message.user-message {
+        justify-content: flex-end;
+        /* Align user messages to right */
+    }
 
-.chat-message.ai-message {
-    justify-content: flex-start;  /* Align AI messages to left */
-}
+    .chat-message.ai-message {
+        justify-content: flex-start;
+        /* Align AI messages to left */
+    }
 
 
-/* Make chat-bubble inline-block so it respects text-align */
-.chat-bubble {
-    display: inline-block;  /* This is key - allows text-align to work */
-    max-width: 80%;
-    background-color: #f1f0f0;
-    padding: var(--spacing-2) var(--spacing-3);
-    border-radius: 24px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    text-align: left;  /* Reset text alignment inside the bubble */
-}
+    /* Make chat-bubble inline-block so it respects text-align */
+    .chat-bubble {
+        display: inline-block;
+        /* This is key - allows text-align to work */
+        max-width: 80%;
+        background-color: #f1f0f0;
+        padding: var(--spacing-2) var(--spacing-3);
+        border-radius: 24px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        text-align: left;
+        /* Reset text alignment inside the bubble */
+    }
 
-.chat-message.user-message .chat-bubble {
-    background-color: var(--color-electric-indigo);
-    color: white;
-    border-bottom-right-radius: 4px;
-}
+    .chat-message.user-message .chat-bubble {
+        background-color: var(--color-electric-indigo);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
 
-.chat-message.ai-message .chat-bubble {
-    background-color: #f1f0f0;
-    color: black;
-    border-bottom-left-radius: 4px;
-}
+    .chat-message.ai-message .chat-bubble {
+        background-color: #f1f0f0;
+        color: black;
+        border-bottom-left-radius: 4px;
+    }
 
-.chat-text {
-    font-size: var(--font-size-body);
-    line-height: var(--line-height-body);
-}
+    .chat-text {
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-body);
+    }
 
-.message-time {
-    font-size: var(--font-size-small);
-    opacity: 0.6;
-    margin-top: 4px;
-    align-self: flex-end;
-    white-space: nowrap;
-}
+    .message-time {
+        font-size: var(--font-size-small);
+        opacity: 0.6;
+        margin-top: 4px;
+        align-self: flex-end;
+        white-space: nowrap;
+    }
 
 
 
@@ -123,27 +130,27 @@
         padding: var(--spacing-5);
         color: var(--color-neutral-grey);
     }
-    
+
     .welcome-title {
         font-size: var(--font-size-h3);
         font-weight: var(--font-semibold);
         color: var(--color-midnight-blue);
         margin-bottom: var(--spacing-2);
     }
-    
+
     .welcome-text {
         max-width: 600px;
         margin: 0 auto var(--spacing-4);
         line-height: var(--line-height-body);
     }
-    
+
     .suggested-questions {
         display: flex;
         flex-wrap: wrap;
         gap: var(--spacing-2);
         justify-content: center;
     }
-    
+
     .suggestion-chip {
         background-color: white;
         border: 1px solid var(--color-soft-lavender);
@@ -153,12 +160,12 @@
         transition: all var(--transition-standard);
         font-size: var(--font-size-small);
     }
-    
+
     .suggestion-chip:hover {
         border-color: var(--color-electric-indigo);
         background-color: var(--color-soft-lavender);
     }
-    
+
     /* Floating Chat Input - Contained */
     .chat-input-container {
         position: absolute;
@@ -169,7 +176,7 @@
         background-color: transparent;
         border-top: none;
     }
-    
+
     .chat-input-inner {
         max-width: 1200px;
         margin: 0 auto;
@@ -179,13 +186,13 @@
         padding: var(--spacing-3);
         box-shadow: 0 2px 10px rgba(21, 27, 54, 0.05);
     }
-    
+
     .chat-input-wrapper {
         display: flex;
         gap: var(--spacing-2);
         align-items: center;
     }
-    
+
     .chat-input {
         flex: 1;
         padding: var(--spacing-2) var(--spacing-3);
@@ -195,18 +202,18 @@
         font-family: var(--font-primary);
         transition: all var(--transition-standard);
     }
-    
+
     .chat-input:focus {
         outline: none;
         border-color: var(--color-electric-indigo);
         box-shadow: 0 0 0 3px rgba(94, 43, 255, 0.1);
     }
-    
+
     .chat-input:disabled {
         background-color: var(--color-soft-lavender);
         cursor: not-allowed;
     }
-    
+
     .send-button {
         background-color: var(--color-electric-indigo);
         color: white;
@@ -220,18 +227,18 @@
         align-items: center;
         gap: var(--spacing-1);
     }
-    
+
     .send-button:hover {
         background-color: var(--color-electric-indigo-light);
         transform: translateY(-2px);
     }
-    
+
     .send-button:disabled {
         background-color: var(--color-neutral-grey);
         cursor: not-allowed;
         transform: none;
     }
-    
+
     /* Status Bar */
     .status-bar {
         margin-bottom: var(--spacing-2);
@@ -243,13 +250,13 @@
         font-weight: var(--font-medium);
         border-radius: var(--radius-standard);
     }
-    
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .chat-messages {
             padding: var(--spacing-2);
         }
-        
+
         .chat-message {
             padding: 0 var(--spacing-2);
         }
@@ -257,15 +264,15 @@
         .chat-bubble {
             max-width: 85%;
         }
-        
+
         .welcome-title {
             font-size: var(--font-size-h4);
         }
-        
+
         .document-hero-inner {
             padding: 0 var(--spacing-2);
         }
-        
+
         .chat-input-container {
             padding: var(--spacing-2);
         }
@@ -288,24 +295,21 @@
 <div class="chat-wrapper">
     {% include "partials/chat_area.html" %}
 
-    
+
     <div class="chat-input-container">
         <div class="chat-input-inner">
             <div class="chat-input-wrapper">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
                 <!-- Text/Chat input -->
-                <input 
-                    type="text" 
-                    class="chat-input form-control" 
-                    id="chatInput" 
-                    placeholder="Ask me anything about this document..."
-                >
-                
+                <input type="text" class="chat-input form-control" id="chatInput"
+                    placeholder="Ask me anything about this document...">
+
                 <!-- Send msg btn -->
                 <button class="send-button" id="sendButton">
                     <span>Send</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"></line>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                     </svg>
@@ -336,7 +340,7 @@
 
     // Automatically add CSRF token to all AJAX requests
     $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
+        beforeSend: function (xhr, settings) {
             if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
             }
@@ -363,7 +367,7 @@
                 type: "POST",
                 url: "{% url 'chat_view' slug %}",
                 data: {
-                    message: message                
+                    message: message
                 },
                 success: function (response) {
                     if (response.success) {
@@ -410,7 +414,7 @@
                     alert("Something went wrong. Please try again.");
                 }
             });
-            
+
         });
     });
 </script>
