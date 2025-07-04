@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from django.db import transaction, IntegrityError
 from django.utils import timezone
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .prompts import (
     generate_headline_prompts, 
     generate_six_page_summary_prompts, 
@@ -97,7 +100,7 @@ class DocumentSummarizer:
             return response.output_text.strip()
 
         except Exception as e:
-            print(f"LLM call failed for {purpose}: {e}")
+            logger.error(f"LLM call failed for {purpose}: {e}")
             raise RuntimeError(f"Failed to generate {purpose}") from e
         
 
@@ -164,7 +167,7 @@ class DocumentSummarizer:
             
             return sections
         except Exception as e:
-            print(f"Error parsing JSON response | Response: {response} | Error: {e}")
+            logger.error(f"Error parsing JSON response | Response: {response} | Error: {e}")
             raise
     
     def process_document(self) -> Dict:
@@ -192,10 +195,10 @@ class DocumentSummarizer:
         if not six_page_chunks:
             raise ValueError(f"No 6-page chunks found for document {self.document.id}")
         
-        print(f"Processing {len(six_page_chunks)} 6-page chunks...")
+        logger.info(f"Processing {len(six_page_chunks)} 6-page chunks...")
         
         # Step 1: Generate headlines for each 6-page chunk
-        print("\n=== Generating Headlines ===")
+        logger.info("\n=== Generating Headlines ===")
         for chunk in six_page_chunks:
             headline = self._call_openai(
                 'generate_headline',
@@ -211,41 +214,41 @@ class DocumentSummarizer:
                 page_end=chunk.page_end
             )
             self.headlines.append(headline_chunk)
-            print(f"Pages {chunk.page_start}-{chunk.page_end}: {headline}")
+            logger.info(f"Pages {chunk.page_start}-{chunk.page_end}: {headline}")
         
         # Step 2: Generate 6-page summaries (temporary)
-        print("\n=== Generating 6-Page Summaries ===")
+        logger.info("\n=== Generating 6-Page Summaries ===")
         for headline_chunk in self.headlines:
             chunk = chunks_by_id[headline_chunk.chunk_id]
             summary = self._call_openai('generate_six_page_summary',chunk.content, headline_chunk.headline)
             headline_chunk.summary = summary
-            print(f"Generated summary for: {headline_chunk.headline}")
+            logger.info(f"Generated summary for: {headline_chunk.headline}")
         
         # Step 3: Identify logical sections from headlines
-        print("\n=== Identifying Document Sections ===")
+        logger.info("\n=== Identifying Document Sections ===")
         response = self._call_openai('identify_sections_from_headlines',self.headlines)
         self.sections = self._parse_sections_json(response)
         for section in self.sections:
-            print(f"Section {section.section_id}: {section.title} (includes {len(section.headline_indices)} chunks)")
+            logger.info(f"Section {section.section_id}: {section.title} (includes {len(section.headline_indices)} chunks)")
         
         # Step 4: Generate section summaries
-        print("\n=== Generating Section Summaries ===")
+        logger.info("\n=== Generating Section Summaries ===")
         for section in self.sections:
             section.summary = self._call_openai('generate_section_summary', section, self.headlines)
-            print(f"Generated summary for section: {section.title}")
+            logger.info(f"Generated summary for section: {section.title}")
         
         # Step 5: Generate document summary
-        print("\n=== Generating Document Summary ===")
+        logger.info("\n=== Generating Document Summary ===")
         self.document_summary = self._call_openai('generate_document_summary', self.sections)
-        print("Document summary generated")
+        logger.info("Document summary generated")
         
         # Step 6: Generate contents page
-        print("\n=== Generating Contents Page ===")
+        logger.info("\n=== Generating Contents Page ===")
         self.contents_page = self._generate_contents_page(self.headlines)
-        print("Contents page generated")
+        logger.info("Contents page generated")
         
         # Step 7: Save to database
-        print("\n=== Saving to Database ===")
+        logger.info("\n=== Saving to Database ===")
         self._save_results_to_database()
         
         # Return all results
@@ -310,14 +313,14 @@ class DocumentSummarizer:
                         }
                     )
             
-                print(f"Updated document metadata and contents page for: {self.document.id}")
-                print(f"Saved document summary: {doc_summary.id}")
-                print(f"Saved {len(self.sections)} section summaries")
+                logger.info(f"Updated document metadata and contents page for: {self.document.id}")
+                logger.info(f"Saved document summary: {doc_summary.id}")
+                logger.info(f"Saved {len(self.sections)} section summaries")
         except IntegrityError: # this is raised if there are *any* integrity errors in the satements in the transaction.
-            print("Integrity Error while saving items to database.")
+            logger.error("Integrity Error while saving items to database.")
             raise
         except Exception as e: # this is raised if there are *any* NON-integrity errors in the satements in the transaction.
-            print(f"Failed to save summaries for document {self.document.id}: {e}")
+            logger.error(f"Failed to save summaries for document {self.document.id}: {e}")
             raise # Only non-IntegrityError exceptions are re-raised
 
 # Example usage:

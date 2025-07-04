@@ -4,6 +4,8 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass
 from django.db import transaction
 
+import logging 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DocumentChunk:
@@ -163,7 +165,7 @@ Guidelines:
             response = self.llm_service.responses.create(model=self.chunking_model, input=prompt)
             return json.loads(response)
         except (json.JSONDecodeError, Exception) as e:
-            print(f"LLM chunking failed for page {page_num}, falling back to simple chunking: {e}")
+            logger.error(f"LLM chunking failed for page {page_num}, falling back to simple chunking: {e}")
             return self._simple_chunk_page(page_text)
     
     def _simple_chunk_page(self, page_text: str) -> Dict[str, List[str]]:
@@ -361,7 +363,7 @@ Guidelines:
                 if django_chunks:
                     created = DjangoDocumentChunk.objects.bulk_create(django_chunks)
                     created_chunks[chunk_type] = created
-                    print(f"Saved {len(created)} {chunk_type} chunks to database")
+                    logger.info(f"Saved {len(created)} {chunk_type} chunks to database")
             
         return created_chunks
     
@@ -394,27 +396,27 @@ Guidelines:
         }
 
         # Extract all pages from PDF
-        print(f"Extracting pages from {self.document.file.path}...")
+        logger.info(f"Extracting pages from {self.document.file.path}...")
         pages = self._extract_pdf_pages(self.document.file.path) # Unsure if this should be .file or .file.path
         self.pages = pages
         
         if not pages:
             raise Exception("No pages extracted from PDF")
         
-        print(f"Extracted {len(pages)} pages")
+        logger.info(f"Extracted {len(pages)} pages")
         
         # Create all chunk types
-        print("Creating hierarchical chunks...")
+        logger.info("Creating hierarchical chunks...")
         self._create_chunks_from_pages(pages)
         
         # Print summary for monitoring
-        print("\n=== Chunking Complete ===")
+        logger.info("\n=== Chunking Complete ===")
         for chunk_type, chunk_list in self.chunks.items():
-            print(f"{chunk_type}: {len(chunk_list)} chunks")
-        print("=========================\n")
+            logger.info(f"{chunk_type}: {len(chunk_list)} chunks")
+        logger.info("=========================\n")
         
         # Save to database
-        print("Saving chunks to database...")
+        logger.info("Saving chunks to database...")
         saved_chunks = self.save_chunks_to_database()
         
         # Note: The save_chunks_to_database call could be moved outside this method
