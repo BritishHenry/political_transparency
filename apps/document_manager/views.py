@@ -4,10 +4,13 @@ from .models import Document
 
 
 def document_library(request):
-    context={}
+    documents = Document.objects.all()
+
+    context={"documents":documents}
     return render(request, "document_library.html", context)
 
 def documents(request):
+    # This is set up for the fancy document page with rankings of popularity etc etc
     context={}
     return render(request, "documents.html", context)
 

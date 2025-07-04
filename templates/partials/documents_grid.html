@@ -21,14 +21,14 @@
         <div class="document-card card">
           <div class="document-card-body">
             <div class="mb-2">
-              {% for tag in document.tags %}
+              {% for tag in document.tags.all %}
                 <span class="document-tag">{{ tag }}</span>
               {% endfor %}
               {% if document.featured %}
                 <span class="document-tag document-tag-featured">Featured</span>
               {% endif %}
             </div>
-            <h3 class="document-card-title">{{ document.title }}</h3>
+            <h3 class="document-card-title">{{ document.name }}</h3>
             <p class="document-card-description">
               {{ document.description }}
             </p>
@@ -41,7 +41,8 @@
             <div class="document-date">
               <i class="far fa-calendar-alt"></i> Added {{ document.date_added }}
             </div>
-            <a href="{% url 'document_detail' document.slug %}" class="button-secondary" style="padding: 6px 12px;">
+            <a href="{% url 'chat_view' document.slug %}" class="btn button-secondary" style="padding: 6px 12px;">
+
               View Document
             </a>
           </div>
@@ -55,7 +56,6 @@
           <i class="far fa-file-alt"></i>
         </div>
         <h3>No documents found</h3>
-        <p>Try adjusting your filters or search criteria.</p>
       </div>
     </div>
   {% endif %}

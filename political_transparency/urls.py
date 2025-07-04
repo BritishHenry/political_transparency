@@ -36,7 +36,7 @@ urlpatterns = [
     path("privacy-policy/",     g_views.privacy_policy, name="privacy_policy"),
 
     # Donations
-    path("donations/",              dons_views.donations_view, name="donations"),
+    #path("donations/",              dons_views.donations_view, name="donations"),
 
     # Voting for new docs
     #path("voting/",                     vote_views.voting_view, name="voting"),
