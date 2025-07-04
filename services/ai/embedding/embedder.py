@@ -3,8 +3,7 @@ This file will handle the embedding of all the document's chunks
 '''
 import logging
 from .validators import validate_embedding_input, validate_embedding_response
-from .decorators import retry_with_backoff
-
+from general.decorators import retry_with_backoff
 logger = logging.getLogger(__name__)
 
 class Embedder:

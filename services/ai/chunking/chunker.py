@@ -49,16 +49,16 @@ class PDFDocumentChunker:
     The first page of a document is page 1, not page 0.
     """
     
-    def __init__(self, document_instance, llm_service=None, chunking_model=None):
+    def __init__(self, document, llm_service=None, chunking_model=None):
         """
         Initialize the chunker with a Django Document model instance.
         
         Args:
-            document_instance: Django Document model instance this chunker will process
+            document: Django Document model instance this chunker will process
             llm_service: Service for LLM calls (inject your OpenAI/etc. client)
                         If None, falls back to simple regex-based chunking
         """
-        self.document = document_instance  # Store the Django model instance
+        self.document = document  # Store the Django model instance
         self.llm_service = llm_service
         self.chunking_model = chunking_model
         self.pages = []  # Store raw page text for reference
@@ -394,8 +394,8 @@ Guidelines:
         }
 
         # Extract all pages from PDF
-        print(f"Extracting pages from {self.document.file}...")
-        pages = self._extract_pdf_pages(self.document.file)
+        print(f"Extracting pages from {self.document.file.path}...")
+        pages = self._extract_pdf_pages(self.document.file.path) # Unsure if this should be .file or .file.path
         self.pages = pages
         
         if not pages:
@@ -439,7 +439,7 @@ Guidelines:
 # document = Document.objects.get(id=1)
 # 
 # # Initialize chunker with the document instance
-# chunker = PDFDocumentChunker(document_instance=document, llm_service=your_llm_service)
+# chunker = PDFDocumentChunker(document=document, llm_service=your_llm_service)
 # 
 # # Process the PDF and save to database
 # chunks = chunker.process_document('/path/to/document.pdf')
