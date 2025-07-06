@@ -16,11 +16,13 @@ from general.decorators import retry_with_backoff
 from .utils import validate_document, update_processing_status
 
 from document_manager.models.logs import ProcessingLog, EventEnum
+from document_manager.models.chunks import DocumentChunk
+from document_manager.models.summaries import DocumentSummary
 
 from django.conf import settings
 
 from django.db import transaction
-from document_manager.models import Document 
+from document_manager.models.general import Document 
 from django.shortcuts import get_object_or_404
 
 from openai import OpenAI
@@ -70,24 +72,40 @@ class Control:
         
         ProcessingLog.create_log(document, EventEnum.VALIDATION_COMPLETED)
         ProcessingLog.create_log(document, EventEnum.PROCESSING_STARTED)
-
         update_processing_status(document, 'processing')
 
         try:
-            # Chunk and summarize in one transaction
+            # Chunk and and save chunks
+            logger.info("Chunking document now.")
             chunker = self.chunk_document(document)
-            summariser = self.conduct_summarisations(document)
-            embedder, data_to_save, qdrant_client, collection_name= self.embed_document(document)
-
-            with transaction.atomic():
+            if chunker:
+                logger.info("DocumentChunks processed -> next is to save them.")
                 self._save_chunks_to_database(chunker)
+                logger.info("Chunks saved.")
+            else:
+                logger.info("chunker is None -> chunks were not processed.")
+
+            logger.info("Summarising chunks now.")
+            summariser = self.conduct_summarisations(document)
+            if summariser:
+                logger.info("Summaries created -> next is to save them.")
                 self._save_summaries_to_database(summariser)
-                self._save_embeddings(embedder, data_to_save, qdrant_client, collection_name) 
+                logger.info("Summaries saved.")
+            else:
+                logger.info("summariser is None -> summaries were not processed.")
+            
+            # Currently not adding a check if embeddings are already saved as this is the last step so it would be redundant. Also causes lots of additional work.
+            logger.info("Embedding chunks and summaries now.")
+            embedder, data_to_save, qdrant_client, collection_name= self.embed_document(document)
+            logger.info("Embedding completed -> next is to save them.")
+            self._save_embeddings(embedder, data_to_save, qdrant_client, collection_name) 
+            logger.info("Embeddings saved -> Pipeline complete.")
                         
             update_processing_status(document, 'completed')
             document.is_active = True
             document.save(update_fields=['is_active'])
             return True
+        
         except Exception as e:
             logger.error('Failed to process document in control pipeline | Error: ', e)
             update_processing_status(document, 'failed')
@@ -97,12 +115,19 @@ class Control:
 
     # @retry_with_backoff() - removing to avoid repeat retries of expensive errors
     def chunk_document(self, document:Document):
+        if DocumentChunk.objects.filter(document=document).exists():
+            logger.info('Chunking already complete')
+            return
+        
         try:
             ProcessingLog.create_log(document, EventEnum.CHUNKING_STARTED)
+
             chunker = PDFDocumentChunker(document=document, llm_service=self.llm_service, chunking_model=self.chunking_model)
             chunker.process_document()
+            
             ProcessingLog.create_log(document, EventEnum.CHUNKING_COMPLETED)
             return chunker
+        
         except Exception as e:
             logger.error(f"Failed to chunk document | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,
@@ -121,12 +146,19 @@ class Control:
 
     #@retry_with_backoff()
     def conduct_summarisations(self, document:Document):
+        if DocumentSummary.objects.filter(document=document).exists():
+            logger.info('Summaries already complete')
+            return
+        
         try:
             ProcessingLog.create_log(document, EventEnum.SUMMARISATION_STARTED)
+            
             summariser = DocumentSummarizer(document_instance=document, llm_service=self.llm_service, model=self.summarisation_model)
             summariser.process_document()
+
             ProcessingLog.create_log(document, EventEnum.SUMMARISATION_COMPLETED)
             return summariser
+        
         except Exception as e:
             logger.error(f"Failed to conduct summarisations | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,

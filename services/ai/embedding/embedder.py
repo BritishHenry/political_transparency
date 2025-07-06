@@ -42,7 +42,7 @@ class Embedder:
             logger.error(f"Failed to initialize Qdrant client: {e}")
             raise
 
-    @retry_with_backoff(max_retries=3, base_delay=1, max_delay=30)
+    @retry_with_backoff(base_delay=5)
     def get_embedding(self, input):
         '''Create the embedding using OpenAI Responses API: used for document upload and user messages'''
         
@@ -100,7 +100,8 @@ class Embedder:
         logger.info(f"Starting save operation for {len(data_to_save)} items to collection: {collection_name}")
         
         from qdrant_client import models
-        from apps.document_manager.models import DocumentChunk, DocumentSummary
+        from document_manager.models.chunks import DocumentChunk
+        from document_manager.models.summaries import DocumentSummary
         from django.db import transaction
         import uuid
         from django.utils import timezone
@@ -177,8 +178,6 @@ class Embedder:
                         batch_size=100 # recommended when updating a lot of instances
                     )
                     logger.info(f"Successfully updated {len(summaries_to_update)} DocumentSummary objects")
-
-                
                                 
         except Exception as e:
             logger.error(f"Error while saving data to DocumentChunk, DocumentSummary or Qdrant: {e}")
@@ -205,7 +204,8 @@ class Embedder:
         '''
         logger.info(f"Starting embedding process for document: {document.id} ({document.title if hasattr(document, 'title') else 'Unknown title'})")
         
-        from apps.document_manager.models import DocumentChunk, DocumentSummary
+        from document_manager.models.chunks import DocumentChunk
+        from document_manager.models.summaries import DocumentSummary
                 
         logger.debug("Fetching chunks and summaries from database")
         chunks =    DocumentChunk.objects.filter(document=document, vector_id__isnull=True) 

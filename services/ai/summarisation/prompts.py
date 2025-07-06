@@ -57,7 +57,14 @@ def identify_sections_from_headlines_prompts(headline_list):
     instructions = f"""
 Analyze the inputted headlines from a political document and group them into logical sections.
 
-Create logical document sections by grouping related headlines. Return a JSON object with:
+Guidelines:
+- Group headlines that cover related topics, policies, or document parts
+- Section titles should be clear and descriptive (2-5 words)
+- Sections should follow the document's natural flow
+- Include reasoning to make grouping logic transparent
+- Typical sections might include: Overview, Eligibility, Requirements, Procedures, Enforcement, Appendices
+
+Create and output logical document sections by grouping related headlines. Return a JSON object in this format:
 {{
     "sections": [
         {{
@@ -70,12 +77,8 @@ Create logical document sections by grouping related headlines. Return a JSON ob
     ]
 }}
 
-Guidelines:
-- Group headlines that cover related topics, policies, or document parts
-- Section titles should be clear and descriptive (2-5 words)
-- Sections should follow the document's natural flow
-- Include reasoning to make grouping logic transparent
-- Typical sections might include: Overview, Eligibility, Requirements, Procedures, Enforcement, Appendices
+## WARNING:
+- In the response output, do NOT include any content, spaces or strings outside of the JSON object. There should be NO prefix or suffix. ONLY return the JSON, no additional content.
 """
     
     input = f"""

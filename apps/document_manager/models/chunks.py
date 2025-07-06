@@ -26,7 +26,7 @@ class DocumentChunk(models.Model):
         default='Not specified',
         help_text="Model used for embedding generation"
     )
-    embedded_at = models.DateTimeField(auto_now_add=False, auto_now=False)
+    embedded_at = models.DateTimeField(null=True, blank=True)
 
     metadata = models.JSONField(default=dict)  # Stores the flexible dict
 

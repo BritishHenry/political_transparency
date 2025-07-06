@@ -1,10 +1,15 @@
 from django.contrib import admin
+
 from document_manager.models.general import Tag, Document
 from document_manager.models.logs import ProcessingLog
 from document_manager.models.chunks import DocumentChunk
+from document_manager.models.summaries import DocumentSummary
+
+from django_q.tasks import async_task
+
+
 import logging
 logger = logging.getLogger(__name__)
-from django_q.tasks import async_task
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -38,7 +43,15 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentChunk)
 class DocumentChunkAdmin(admin.ModelAdmin):
-    list_display = ('document', 'chunk_index', 'vector_id', 'created_at')
+    list_display = ('document', 'chunk_type', 'chunk_index', 'vector_id', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('document__name', 'content')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(DocumentSummary)
+class DocumentSummaryAdmin(admin.ModelAdmin):
+    list_display = ('document', 'summary_type', 'section_name', 'vector_id', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('document__name', 'content')
     readonly_fields = ('created_at',)

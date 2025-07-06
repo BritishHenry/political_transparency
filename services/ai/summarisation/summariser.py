@@ -2,8 +2,11 @@ import json
 from json import JSONDecodeError
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
+
 from django.db import transaction, IntegrityError
 from django.utils import timezone
+
+from general.decorators import retry_with_backoff
 
 import logging
 logger = logging.getLogger(__name__)
@@ -73,6 +76,7 @@ class DocumentSummarizer:
         self.document_summary = None
         self.contents_page = None
 
+    @retry_with_backoff(max_retries=3, base_delay=5)
     def _call_openai(self, purpose:str, *args) -> str:
 
         prompt_map = {
@@ -181,8 +185,10 @@ class DocumentSummarizer:
         Returns:
             Dictionary containing all generated summaries and metadata
         """
-        from apps.document_manager.models.chunks import DocumentChunk
-        
+        print("In summariser, process_document()")
+        from document_manager.models.chunks import DocumentChunk
+        print("Imported DocumentChunk")
+
         # Get all 6-page chunks from the database
         six_page_chunks = DocumentChunk.objects.filter(
             document=self.document,
@@ -239,7 +245,7 @@ class DocumentSummarizer:
         
         # Step 5: Generate document summary
         logger.info("\n=== Generating Document Summary ===")
-        self.document_summary = self._call_openai('generate_document_summary', self.sections)
+        self.document_summary = self._call_openai('generate_document_summary', self.document.name ,self.sections)
         logger.info("Document summary generated")
         
         # Step 6: Generate contents page
@@ -267,7 +273,7 @@ class DocumentSummarizer:
         This follows the storage architecture where only permanent
         summaries are kept to optimize storage.
         """
-        from apps.document_manager.models.summaries import DocumentSummary
+        from document_manager.models.summaries import DocumentSummary
         from django.utils import timezone
         
         try:

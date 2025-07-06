@@ -4,6 +4,9 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass
 from django.db import transaction
 
+from general.decorators import retry_with_backoff
+
+
 import logging 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class DocumentChunk:
     chunk_type: str  # 'sentence', 'paragraph', 'page', '6_page'
     page_start: int  # First page this chunk appears on (1-indexed for human readability)
     page_end: int  # Last page this chunk appears on (1-indexed for human readability)
-    chunk_index: int  # Sequential index within this chunk type
+    # chunk_index: int  # Sequential index within this chunk type - removed as it doesnt assit logic and adds complexity. just adding in when ready to save.
     metadata: Dict = None  # Additional metadata for context
     
     def __post_init__(self):
@@ -118,6 +121,7 @@ class PDFDocumentChunker:
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         return '\n'.join(lines)
     
+    @retry_with_backoff(base_delay=5)
     def _chunk_page_with_llm(self, page_text: str, page_num: int) -> Dict[str, List[str]]:
         """
         Use LLM to intelligently identify sentences and paragraphs.
@@ -203,8 +207,6 @@ class PDFDocumentChunker:
         The chunk indexing is important for maintaining order and
         creating relationships between different granularity levels.
         """
-        sentence_index = 0
-        paragraph_index = 0
         
         # Process each page individually
         for page_idx, page_text in enumerate(pages):
@@ -228,11 +230,9 @@ class PDFDocumentChunker:
                     chunk_type='sentence',
                     page_start=page_num,  # 1-indexed
                     page_end=page_num,    # 1-indexed
-                    chunk_index=sentence_index,
                     metadata={'original_page': page_num}  # 1-indexed
                 )
                 self.chunks['sentences'].append(chunk)
-                sentence_index += 1
             
             # Create paragraph chunks - these provide context around sentences
             for paragraph in page_chunks['paragraphs']:
@@ -241,11 +241,9 @@ class PDFDocumentChunker:
                     chunk_type='paragraph',
                     page_start=page_num,  # 1-indexed
                     page_end=page_num,    # 1-indexed
-                    chunk_index=paragraph_index,
                     metadata={'original_page': page_num}  # 1-indexed
                 )
                 self.chunks['paragraphs'].append(chunk)
-                paragraph_index += 1
             
             # Create page chunk - useful for understanding document flow and structure
             page_chunk = DocumentChunk(
@@ -253,7 +251,6 @@ class PDFDocumentChunker:
                 chunk_type='page',
                 page_start=page_num,  # 1-indexed
                 page_end=page_num,    # 1-indexed
-                chunk_index=page_idx,  # Keep 0-indexed for sequential ordering
                 metadata={
                     'sentence_count': len(page_chunks['sentences']),
                     'paragraph_count': len(page_chunks['paragraphs']),
@@ -278,7 +275,6 @@ class PDFDocumentChunker:
         These chunks will be used to create section summaries in Step 2
         of our pipeline, then deleted to save storage space.
         """
-        six_page_index = 0
         
         for i in range(0, len(pages), 6):
             # Get up to 6 pages (or remaining pages if less than 6)
@@ -295,14 +291,12 @@ class PDFDocumentChunker:
                 chunk_type='6_page',
                 page_start=page_start,  # 1-indexed
                 page_end=page_end,      # 1-indexed
-                chunk_index=six_page_index,
                 metadata={
                     'page_count': len(page_group),
                     'pages_included': list(range(page_start, page_end + 1))  # 1-indexed list
                 }
             )
             self.chunks['6_pages'].append(chunk)
-            six_page_index += 1
     
     def save_chunks_to_database(self) -> Dict[str, List]:
         """
@@ -324,7 +318,7 @@ class PDFDocumentChunker:
         """
         # Import the Django model here to avoid circular imports
         # IMPORTANT: Update this import path to match your Django app structure
-        from apps.document_manager.models.chunks import DocumentChunk as DjangoDocumentChunk
+        from document_manager.models.chunks import DocumentChunk as DjangoDocumentChunk
         
         # Use a transaction to ensure all-or-nothing behavior
         with transaction.atomic():
@@ -338,7 +332,8 @@ class PDFDocumentChunker:
                 'pages': [],
                 '6_pages': []
             }
-            
+
+            global_chunk_index = 0
             # Process each chunk type
             for chunk_type, chunks in self.chunks.items():
                 # Prepare Django model instances for bulk creation
@@ -347,7 +342,7 @@ class PDFDocumentChunker:
                 for chunk in chunks:
                     django_chunk = DjangoDocumentChunk(
                         document=self.document,
-                        chunk_index=chunk.chunk_index,
+                        chunk_index=global_chunk_index,
                         chunk_type=chunk.chunk_type,
                         page_start=chunk.page_start,
                         page_end=chunk.page_end,
@@ -358,6 +353,7 @@ class PDFDocumentChunker:
                         embedding_model='Not specified'  # Will be updated when embeddings are created
                     )
                     django_chunks.append(django_chunk)
+                    global_chunk_index += 1
                 
                 # Bulk create all chunks of this type in a single query
                 if django_chunks:
