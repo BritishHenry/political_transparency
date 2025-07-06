@@ -27,6 +27,10 @@ SECRET_KEY = "django-insecure-+1k778ivzvm0&bl+5h6n#pzx8v(1#**)@ld#-rs+095wqta8v*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG')
 
+if DEBUG == False:
+    # Unless your site should be available over both SSL and non-SSL connections, you may want to either set this setting True or configure a load balancer or reverse-proxy server to redirect all connections to HTTPS.
+    SECURE_SSL_REDIRECT = True
+
 ALLOWED_HOSTS = []
 
 
@@ -48,10 +52,10 @@ INSTALLED_APPS = [
     "django_q",
 
     # Custom Apps
-    "apps.document_manager",
-    "apps.donations_manager",
-    "apps.voting_manager",
-    "apps.chat_manager",
+    "document_manager",
+    "donations_manager",
+    "voting_manager",
+    "chat_manager",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +67,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Using a secure-only CSRF cookie makes it more difficult for network traffic sniffers to steal the CSRF token.
+CSRF_COOKIE_SECURE = True
+
+# Using a secure-only session cookie makes it more difficult for network traffic sniffers to hijack user sessions.
+SESSION_COOKIE_SECURE = True
 
 # API Keys
 QDRANT_API_KEY = config('QDRANT_API_KEY')
@@ -76,8 +86,8 @@ Q_CLUSTER = {
     'name': 'default',
     'workers': 4,
     'recycle': 500,
-    'timeout': 60,
-    'retry': 120,
+    'timeout': 3600, # 1hr
+    'retry': 3600, # retry timeout: 1hr
     'queue_limit': 50,
     'bulk': 10,
     'orm': 'default',  # Using Django ORM as the broker
@@ -156,17 +166,38 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{asctime} | {filename}:{funcName} | {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': 'security.log',
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'level': 'DEBUG',
         },
     },
     'loggers': {
-        'your_app.validators': {
-            'handlers': ['file'],
-            'level': 'WARNING',
+        # Suppress verbose PDF parsing logs
+        'pdfminer': {
+            'level': 'WARNING',  # Only show warnings/errors
+            'handlers': ['console'],
         },
+        'pdfplumber': {
+            'level': 'WARNING',  # Only show warnings/errors
+            'handlers': ['console'],
+        },
+        'document_manager': {
+            'level': 'INFO', 
+            'handlers': ['console'],
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
     },
 }

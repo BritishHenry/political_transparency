@@ -137,33 +137,30 @@ class PDFDocumentChunker:
         """
         if not self.llm_service:
             # If no LLM available, use simple fallback
+            logger.warning("LLM not available, falling back to simple chunking.")
             return self._simple_chunk_page(page_text)
         
-        # Prompt designed specifically for political/legal documents
-        prompt = f"""
-Analyze this page of a political document and identify all sentences and paragraphs.
-
-Page content:
-{page_text}
-
-Return a JSON object with:
-{{
-    "sentences": ["sentence 1", "sentence 2", ...],
-    "paragraphs": ["paragraph 1", "paragraph 2", ...]
-}}
-
-Guidelines:
-- Preserve exact text content (no summarizing or paraphrasing)
-- Maintain proper sentence boundaries (handle legal citations correctly)
-- Group sentences into logical paragraphs based on topic/theme
-- Handle numbered/lettered sections appropriately (e.g., "(a) text here")
-- Preserve regulatory formatting and cross-references
-- Each paragraph should be a cohesive unit for search purposes
-"""
+        from .prompts import get_chunk_page_prompt
+        prompt = get_chunk_page_prompt(page_text)
         
         try:
             response = self.llm_service.responses.create(model=self.chunking_model, input=prompt)
-            return json.loads(response)
+
+            # Response validation
+            if not response or not hasattr(response, 'output_text'):
+                print(f"Invalid response from LLM for page {page_num}, using simple chunking")
+                return self._simple_chunk_page(page_text)
+            
+            response_text = response.output_text.strip()
+        
+            # Check if response looks like JSON
+            # This is causing errors as it often outputs "json {...}" -> need to remove anything before the {}
+            if not response_text.startswith('{'):
+                print(f"Non-JSON response for page {page_num}: {response_text[:100]}...")
+                return self._simple_chunk_page(page_text)
+                
+            return json.loads(response_text)
+        
         except (json.JSONDecodeError, Exception) as e:
             logger.error(f"LLM chunking failed for page {page_num}, falling back to simple chunking: {e}")
             return self._simple_chunk_page(page_text)
@@ -211,6 +208,9 @@ Guidelines:
         
         # Process each page individually
         for page_idx, page_text in enumerate(pages):
+            if page_idx % 10 == 0:  # Log every 10 pages
+                logger.info(f"Processing page {page_idx + 1}/{len(pages)}")
+
             # Skip empty pages (common in government documents)
             if not page_text.strip():
                 continue
@@ -324,7 +324,7 @@ Guidelines:
         """
         # Import the Django model here to avoid circular imports
         # IMPORTANT: Update this import path to match your Django app structure
-        from apps.document_manager.models import DocumentChunk as DjangoDocumentChunk
+        from apps.document_manager.models.chunks import DocumentChunk as DjangoDocumentChunk
         
         # Use a transaction to ensure all-or-nothing behavior
         with transaction.atomic():
@@ -415,9 +415,6 @@ Guidelines:
             logger.info(f"{chunk_type}: {len(chunk_list)} chunks")
         logger.info("=========================\n")
         
-        # Save to database
-        logger.info("Saving chunks to database...")
-        saved_chunks = self.save_chunks_to_database()
         
         # Note: The save_chunks_to_database call could be moved outside this method
         # for more control over when database operations occur. This would allow

@@ -5,7 +5,7 @@ import requests
 import re
 from chat_manager import prompts
 from django.shortcuts import get_object_or_404
-from apps.document_manager.models import DocumentChunk, DocumentSummary
+from document_manager.models import DocumentChunk, DocumentSummary
 
 def generate_response(response_params):
     

@@ -44,6 +44,7 @@ class Tag(models.Model):
         return self.name
     
     class Meta:
+        app_label = 'document_manager'
         indexes = [
             models.Index(fields=['slug']),
             models.Index(fields=['name']), 
@@ -71,7 +72,7 @@ class Document(models.Model):
     )  # Renamed from 'descriptor' for clarity
     
     tags = models.ManyToManyField(
-        Tag, 
+        'document_manager.Tag', 
         related_name='documents',  # More intuitive reverse relation name
         blank=True
     )
@@ -125,7 +126,7 @@ class Document(models.Model):
         help_text="ID reference in the vector database"
     )
     
-    metadata = models.JSONField(default=dict)  # Stores the flexible dict
+    metadata = models.JSONField(default=dict, blank=True)  # Stores the flexible dict
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -178,6 +179,7 @@ class Document(models.Model):
         return f"{self.name} ({self.processing_status})"
     
     class Meta:
+        app_label = 'document_manager'
         indexes = [
             models.Index(fields=['slug']),
             models.Index(fields=['processing_status']),

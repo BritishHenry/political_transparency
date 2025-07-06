@@ -274,9 +274,10 @@ class Embedder:
         
         if (data_to_save is not None) and (qdrant_client.collection_exists(collection_name=collection_name)):
             logger.info(f"Saving {len(data_to_save)} embeddings to database and Qdrant")
-            self._save(data_to_save, qdrant_client, collection_name)
+            #self._save(data_to_save, qdrant_client, collection_name) -> moving this to the pipeline for more control
             
             logger.info(f"Document embedding process completed successfully for document {document.id}")
+            return data_to_save, qdrant_client, collection_name
         else:
             logger.error(f"Cannot save data: data_to_save is None or collection {collection_name} does not exist")
             

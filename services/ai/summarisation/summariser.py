@@ -181,7 +181,7 @@ class DocumentSummarizer:
         Returns:
             Dictionary containing all generated summaries and metadata
         """
-        from apps.document_manager.models import DocumentChunk
+        from apps.document_manager.models.chunks import DocumentChunk
         
         # Get all 6-page chunks from the database
         six_page_chunks = DocumentChunk.objects.filter(
@@ -248,8 +248,8 @@ class DocumentSummarizer:
         logger.info("Contents page generated")
         
         # Step 7: Save to database
-        logger.info("\n=== Saving to Database ===")
-        self._save_results_to_database()
+        #logger.info("\n=== Saving to Database ===")
+        #self._save_results_to_database()
         
         # Return all results
         return {
@@ -267,7 +267,7 @@ class DocumentSummarizer:
         This follows the storage architecture where only permanent
         summaries are kept to optimize storage.
         """
-        from apps.document_manager.models import DocumentSummary
+        from apps.document_manager.models.summaries import DocumentSummary
         from django.utils import timezone
         
         try:

@@ -13,13 +13,14 @@ from services.ai.summarisation.summariser import DocumentSummarizer
 from services.ai.embedding.embedder import Embedder
 
 from general.decorators import retry_with_backoff
+from .utils import validate_document, update_processing_status
 
-from .models.logs import ProcessingLog, EventEnum
+from document_manager.models.logs import ProcessingLog, EventEnum
 
 from django.conf import settings
 
 from django.db import transaction
-from document_manager.models import Document
+from document_manager.models import Document 
 from django.shortcuts import get_object_or_404
 
 from openai import OpenAI
@@ -62,68 +63,46 @@ class Control:
         self.llm_service = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     def process_document(self, document:Document) -> bool:
-        if not self._validate_document(document):
+        logger.info('Control.process_document() triggered inside document_manager/pipeline.py')
+        if not validate_document(document):
             logger.error("Document not valid.")
             return False
         
         ProcessingLog.create_log(document, EventEnum.VALIDATION_COMPLETED)
         ProcessingLog.create_log(document, EventEnum.PROCESSING_STARTED)
 
-        self._update_processing_status(document, 'processing')
+        update_processing_status(document, 'processing')
 
         try:
             # Chunk and summarize in one transaction
+            chunker = self.chunk_document(document)
+            summariser = self.conduct_summarisations(document)
+            embedder, data_to_save, qdrant_client, collection_name= self.embed_document(document)
+
             with transaction.atomic():
-                self.chunk_document(document)
-                self.conduct_summarisations(document)
-
-            # Embed separately - if this fails, we keep chunks/summaries
-            self.embed_document(document)
-
-            self._update_processing_status(document, 'completed')
+                self._save_chunks_to_database(chunker)
+                self._save_summaries_to_database(summariser)
+                self._save_embeddings(embedder, data_to_save, qdrant_client, collection_name) 
+                        
+            update_processing_status(document, 'completed')
+            document.is_active = True
+            document.save(update_fields=['is_active'])
             return True
         except Exception as e:
             logger.error('Failed to process document in control pipeline | Error: ', e)
-            self._update_processing_status(document, 'failed')
+            update_processing_status(document, 'failed')
             return False
 
-    def _validate_document(self, document:Document) -> bool:
-        '''Validate document before processing it.'''
-        if not Document.objects.filter(pk=document.id).exists():
-            return False
+    ### CHUNKING 
 
-        if document.processing_status not in ['pending', 'failed']:
-            logger.error("Document processing_status is not pending or failed.")
-            return False
-        
-        if not document.file:
-            raise ValueError("Document has no file attached")
-        
-        if not document.file.name.endswith('.pdf'):
-            raise ValueError("Only PDF documents are supported")
-        
-        return True
-        
-    def _update_processing_status(self, document:Document, status:str) -> None:
-        if not document:
-            raise ValueError("No document given.")
-        if not status:
-            raise ValueError("No status update given.")
-        
-        old_status = document.processing_status
-        document.processing_status = status
-        document.save(update_fields=['processing_status'])
-        
-        # Log status changes
-        logger.info(f"Document {document.id} status: {old_status} → {status}")
-        
-    @retry_with_backoff
+    # @retry_with_backoff() - removing to avoid repeat retries of expensive errors
     def chunk_document(self, document:Document):
         try:
             ProcessingLog.create_log(document, EventEnum.CHUNKING_STARTED)
             chunker = PDFDocumentChunker(document=document, llm_service=self.llm_service, chunking_model=self.chunking_model)
             chunker.process_document()
             ProcessingLog.create_log(document, EventEnum.CHUNKING_COMPLETED)
+            return chunker
         except Exception as e:
             logger.error(f"Failed to chunk document | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,
@@ -132,14 +111,22 @@ class Control:
             })
             ProcessingLog.create_log(document, EventEnum.CHUNKING_FAILED)
             raise
+    
+    @retry_with_backoff(max_retries=5) # Only retries the saving, rather than the whole expensive chunking process
+    def _save_chunks_to_database(self, chunker):
+        logger.info("Saving chunks to database")
+        return chunker.save_chunks_to_database() 
 
-    @retry_with_backoff
+    ### SUMMARISATION
+
+    #@retry_with_backoff()
     def conduct_summarisations(self, document:Document):
         try:
             ProcessingLog.create_log(document, EventEnum.SUMMARISATION_STARTED)
             summariser = DocumentSummarizer(document_instance=document, llm_service=self.llm_service, model=self.summarisation_model)
             summariser.process_document()
             ProcessingLog.create_log(document, EventEnum.SUMMARISATION_COMPLETED)
+            return summariser
         except Exception as e:
             logger.error(f"Failed to conduct summarisations | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,
@@ -149,13 +136,20 @@ class Control:
             ProcessingLog.create_log(document, EventEnum.SUMMARISATION_FAILED)
             raise
 
-    @retry_with_backoff
+    @retry_with_backoff(max_retries=5) # Only retries the saving, rather than the whole summarisation process
+    def _save_summaries_to_database(self, summariser):
+        logger.info("Saving sumaries to database")
+        return summariser._save_results_to_database() 
+
+    ### EMBEDDING
+    #@retry_with_backoff()
     def embed_document(self, document:Document):
         try:
             ProcessingLog.create_log(document, EventEnum.EMBEDDING_STARTED)
             embedder = Embedder(self.llm_service, self.embedding_model)
-            embedder.process_document(document)
+            data_to_save, qdrant_client, collection_name = embedder.process_document(document)
             ProcessingLog.create_log(document, EventEnum.EMBEDDING_COMPLETED)
+            return embedder, data_to_save, qdrant_client, collection_name
         except Exception as e:
             logger.error(f"Failed to embed document chunks and summaries, and save the embeddings. | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,
@@ -164,3 +158,8 @@ class Control:
             })
             ProcessingLog.create_log(document, EventEnum.EMBEDDING_FAILED)
             raise
+    
+    @retry_with_backoff(max_retries=5) # Only retries the saving, rather than the whole summarisation process
+    def _save_embeddings(self, embedder, data_to_save, qdrant_client, collection_name):
+        logger.info("Saving embeddings to vector database and references to postgre")
+        return embedder._save_results_to_database(data_to_save, qdrant_client, collection_name) 

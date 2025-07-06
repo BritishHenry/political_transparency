@@ -96,6 +96,9 @@ class ProcessingLog(models.Model):
         if not Document.objects.filter(pk=document.id).exists():
             return ValueError("Document does not exist.")
         
+        if event_type is None:
+            return ValueError("Event type is None")
+        
         return cls.objects.create(
             document=document,
             event_type=event_type,

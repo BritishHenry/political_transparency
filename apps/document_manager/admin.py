@@ -1,6 +1,10 @@
 from django.contrib import admin
-from .models import Tag, Document, DocumentChunk, ProcessingLog
-
+from document_manager.models.general import Tag, Document
+from document_manager.models.logs import ProcessingLog
+from document_manager.models.chunks import DocumentChunk
+import logging
+logger = logging.getLogger(__name__)
+from django_q.tasks import async_task
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -16,6 +20,20 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     filter_horizontal = ('tags',)
     readonly_fields = ('file_hash', 'file_size', 'mime_type', 'created_at', 'updated_at')
+
+    actions = ['process_documents_async']
+
+    def process_documents_async(self, request, queryset):
+        """Queue selected documents for async processing."""
+        count = 0
+        for document in queryset:
+            if document.processing_status not in ['processing', 'completed', 'failed']:
+                
+                # Queue the task
+                async_task('apps.document_manager.tasks.process_documents_task', document.id)
+                count += 1
+    process_documents_async.short_description = "Process selected documents (async)"
+
     
 
 @admin.register(DocumentChunk)
