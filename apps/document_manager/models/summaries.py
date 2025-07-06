@@ -61,7 +61,7 @@ class DocumentSummary(models.Model):
         blank=True,
         help_text="Model used to generate embeddings for this summary"
     )
-    embedded_at = models.DateTimeField(auto_now_add=False, auto_now=False)
+    embedded_at = models.DateTimeField(null=True, blank=True)
     
     # Processing metadata
     processing_version = models.CharField(

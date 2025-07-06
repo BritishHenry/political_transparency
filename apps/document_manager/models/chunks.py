@@ -40,5 +40,8 @@ class DocumentChunk(models.Model):
         ordering = ['document', 'chunk_index']
         unique_together = [['document', 'chunk_index']]
     
+        verbose_name = "Document Chunk"
+        verbose_name_plural = "Document Chunks"
+
     def __str__(self):
         return f"{self.document.name} - Chunk {self.chunk_index}"

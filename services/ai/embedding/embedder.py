@@ -221,10 +221,6 @@ class Embedder:
             logger.warning(f"No items to embed for document {document.id}")
             return
 
-        # Santise the collection name to ensure no Qdrant naming issues -> Replaces all NON uppercase letters, lowercase letters, digits, underscores and hyphens with an underscore.
-        import re
-        collection_name = f"{re.sub(r'[^a-zA-Z0-9]', '_', document.slug)}__{document.id}"
-        logger.info(f"Using collection name: {collection_name}")
 
         data_to_save = []            
         
@@ -265,7 +261,13 @@ class Embedder:
         logger.debug("Initializing vector database client")
         qdrant_client = self._initialise_vector_database_client()
 
+        # Santise the collection name to ensure no Qdrant naming issues -> Replaces all NON uppercase letters, lowercase letters, digits, underscores and hyphens with an underscore.
+        import re
+        collection_name = f"{re.sub(r'[^a-zA-Z0-9]', '_', document.slug)}__{document.id}"
+        logger.info(f"Using collection name: {collection_name}")
+
         logger.debug(f"Checking if collection {collection_name} exists")
+        ###! Need to change: if not exist, qdrant returns an exception, not None. So need to handle this with a try/except block to set value, then if/else to check it.
         if not qdrant_client.collection_exists(collection_name=collection_name):
             logger.warning(f"Collection {collection_name} does not exist, creating it")
             self._create_collection(qdrant_client, collection_name)

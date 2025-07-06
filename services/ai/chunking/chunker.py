@@ -158,8 +158,7 @@ class PDFDocumentChunker:
             response_text = response.output_text.strip()
         
             # Check if response looks like JSON
-            # This is causing errors as it often outputs "json {...}" -> need to remove anything before the {}
-            if not response_text.startswith('{'):
+            if not response_text.startswith('{'): # This is sometimes causes errors as it outputs "json {...}" -> need to remove anything before the {}
                 print(f"Non-JSON response for page {page_num}: {response_text[:100]}...")
                 return self._simple_chunk_page(page_text)
                 
@@ -348,8 +347,7 @@ class PDFDocumentChunker:
                         page_end=chunk.page_end,
                         content=chunk.content,
                         metadata=chunk.metadata,
-                        # vector_id will be populated later after embedding generation
-                        vector_id=None,
+                        vector_id=None, # vector_id will be populated later after embedding generation
                         embedding_model='Not specified'  # Will be updated when embeddings are created
                     )
                     django_chunks.append(django_chunk)

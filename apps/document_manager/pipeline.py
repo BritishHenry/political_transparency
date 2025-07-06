@@ -195,3 +195,45 @@ class Control:
     def _save_embeddings(self, embedder, data_to_save, qdrant_client, collection_name):
         logger.info("Saving embeddings to vector database and references to postgre")
         return embedder._save_results_to_database(data_to_save, qdrant_client, collection_name) 
+
+    ### COST ESTIMATION
+
+    def estimate_document_processing_cost(self):
+        '''
+        Here, I need to write a method to estimate the cost of full document processing pipeline.
+        Includes input and output of:
+            - chunking 
+            - summarising
+            - embedding 
+
+        For chunking: 
+            - Create a token estimate for each chunk type
+            - query the databse for sentances and paragraph chunk types. 
+                - (Only sentances and paragrpahs use an llm for chunking -> pages and 6 pages are standard python/pdfplumber.)
+            - for each type: (len(queryset) * input_token_cost) + (len(queryset) * output_token_cost)
+            - Add all type estimations together.
+
+        For summarisation:
+            - Same as chunking, but with summaries
+
+        For Embeddings:
+            - query for all chunks and summaries
+            - len(queryset) * embedding_token_cost
+
+        Finally:
+            - Add all 3 totals together
+
+        !! Once complete, add a estimated_cost_of_processing=models.FloatField to the Document model.
+        '''
+
+        input_model_price_map = { # USD per 1 million tokens
+            "gpt-4.1-2025-04-14": 2,
+        }
+
+        output_model_price_map = { # USD per 1 million tokens
+            "gpt-4.1-2025-04-14": 8,
+        }
+
+        embedding_model_price_map = { # USD per 1 million tokens
+            "text-embedding-3-small" : 0.02,
+        }
