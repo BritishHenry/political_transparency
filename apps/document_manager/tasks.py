@@ -15,11 +15,11 @@ def process_documents_task(document_id):
         from .pipeline import Control
         
         # Initialize with required parameters
-        pipeline = Control()
+        pipeline = Control(document)
         logger.info("Initialised document processing control pipeline")
         
         # Call the process_document method
-        result = pipeline.process_document(document)
+        result = pipeline.process_document()
 
         logger.info("Successfully executed process_documents_task")
 

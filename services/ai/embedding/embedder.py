@@ -302,11 +302,10 @@ class Embedder:
             #logger.info(f"Collection {collection_name} already exists")
         
         if self.data_to_save is not None:
-            logger.info(f"Saving {len(self.data_to_save)} embeddings to database and Qdrant")
-            
-            logger.info(f"Document embedding process completed successfully for document {self.document.id}")
+            #logger.info(f"Saving {len(self.data_to_save)} embeddings to database and Qdrant")
+            logger.info(f"Document embedding process completed successfully for document {self.document.id} and ready to be saved.")
             return
         else:
             logger.error(f"Cannot save data: self.data_to_save is None.")
+            raise ValueError("data_to_save is None")
             
-        return
