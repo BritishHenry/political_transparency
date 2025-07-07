@@ -8,11 +8,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Embedder:
-    def __init__(self, llm_service, embedding_model):
+    def __init__(self, document, llm_service, embedding_model):
+        self.document = document
         self.llm_service = llm_service
         self.embedding_model = embedding_model
+
         self.vector_size = self._get_vector_size_for_model(embedding_model)
         logger.info(f"Embedder initialized with model: {embedding_model}, vector size: {self.vector_size}")
+
+        self.qdrant_client = self._initialise_vector_database_client()
+        logger.info("Initialised qdrant_client")
+
+        self.data_to_save = []
 
     def _get_vector_size_for_model(self, model_name):
         """Get expected vector dimensions for the embedding model"""
@@ -68,36 +75,61 @@ class Embedder:
             logger.error(f"Error creating embedding for text length {text_length}: {e}")
             raise Exception(f"Error creating embedding: {e}")
     
-
-    def _create_collection(self, qdrant_client, collection_name):
+    @retry_with_backoff()
+    def _create_collection(self):
         '''If a Collection does not exist, create one in Qdrant. Each Document will have its own Collection.'''
-        logger.info(f"Creating new Qdrant collection: {collection_name}")
+
+        if self.document.collection_name:
+            collection_name = self.document.collection_name
+        else:
+            # Santise the collection name to ensure no Qdrant naming issues -> Replaces all NON uppercase letters, lowercase letters, digits, underscores and hyphens with an underscore.
+            import re
+            collection_name = f"{re.sub(r'[^a-zA-Z0-9]', '_', self.document.slug)}__{self.document.id}"
+
+        logger.debug(f"Checking if collection {collection_name} exists")
+        try:
+            self.qdrant_client.collection_exists(collection_name=collection_name)
+            logger.info(f"Collection {collection_name} already exists, deleting it.")
+            self.qdrant_client.delete_collection(collection_name=collection_name)
+            logger.info("Collection deleted. Creating clean one.")
+        except:
+            logger.warning(f"Collection {collection_name} does not exist, creating it")
         
         from qdrant_client.models import Distance, VectorParams
         
         try:
-            collection = qdrant_client.create_collection(
+            collection = self.qdrant_client.create_collection(
                 collection_name=collection_name, 
                 vectors_config=VectorParams(size=self.vector_size, distance=Distance.COSINE),
             )
+
+            logger.info(f"Qdrant Collection created: {collection}")
             
             if not collection:
                 logger.error(f"Failed to create collection {collection_name}")
                 raise ValueError("Error creating collection")
-
-            if not qdrant_client.collection_exists(collection_name=collection_name):
+            
+            try:
+                self.qdrant_client.collection_exists(collection_name=collection_name)
+            except:
                 logger.error(f"Collection {collection_name} was not created successfully")
                 raise ValueError(f"Collection '{collection_name}' does not exist in Qdrant")
             
             logger.info(f"Successfully created collection: {collection_name}")
-            return
+
+            # Updating databse reference to ensure consistency.
+            self.document.collection_name = collection_name
+            self.document.save(update_fields=['collection_name'])
+
+            return collection_name
         except Exception as e:
             logger.error(f"Error creating collection {collection_name}: {e}")
             raise
         
-    def _save(self, data_to_save, qdrant_client, collection_name):
-        '''Save the embeddings to Qdrant and update the relvant fields in the Postgresql models.'''
-        logger.info(f"Starting save operation for {len(data_to_save)} items to collection: {collection_name}")
+    @retry_with_backoff()
+    def _save(self):
+        '''Save the embeddings to Qdrant and update the relevant fields in the Postgresql models.'''
+        logger.info(f"Starting save operation for {len(self.data_to_save)}.")
         
         from qdrant_client import models
         from document_manager.models.chunks import DocumentChunk
@@ -106,12 +138,14 @@ class Embedder:
         import uuid
         from django.utils import timezone
 
+        collection_name = self._create_collection()
+
         points_to_upsert = []
         chunks_to_update = []
         summaries_to_update = []
         
         logger.debug("Preparing data for upsert...")
-        for i, data in enumerate(data_to_save): #this implementation relies on the similarities in the DocumentChunk and DocumentSummary models
+        for i, data in enumerate(self.data_to_save): #this implementation relies on the similarities in the DocumentChunk and DocumentSummary models
             vector_uuid = str(uuid.uuid4())
 
             point = models.PointStruct(
@@ -135,14 +169,14 @@ class Embedder:
                 summaries_to_update.append(data["object"])
             
             if (i + 1) % 100 == 0:  # Log progress every 100 items
-                logger.debug(f"Prepared {i + 1}/{len(data_to_save)} items for upsert")
+                logger.debug(f"Prepared {i + 1}/{len(self.data_to_save)} items for upsert")
 
         logger.info(f"Prepared {len(chunks_to_update)} chunks and {len(summaries_to_update)} summaries for database update")
         logger.info(f"Prepared {len(points_to_upsert)} points for Qdrant upsert")
 
         try:
             logger.debug(f"Upserting {len(points_to_upsert)} points to Qdrant collection: {collection_name}")
-            qdrant_client.upsert(
+            self.qdrant_client.upsert(
                 collection_name = collection_name,
                 wait = True, # Ensures operation completes
                 points = points_to_upsert
@@ -150,7 +184,7 @@ class Embedder:
             logger.info(f"Successfully upserted {len(points_to_upsert)} points to Qdrant")
             
             # Verify the upsert succeeded
-            saved_count = qdrant_client.count(
+            saved_count = self.qdrant_client.count(
                 collection_name=collection_name,
                 exact = True,
             )
@@ -185,7 +219,7 @@ class Embedder:
         
         return
 
-    def process_document(self, document):
+    def process_document(self):
         '''
         The flow:
             1) Get the chunks and summaries
@@ -202,14 +236,14 @@ class Embedder:
             - Using text-embedding-3-small, assuming a 300 page pdf doc, which given our chunking methodology, will cost approx $0.0163
             - If cost is an issue, look to batch embed the sentances and maybe paragraphs.
         '''
-        logger.info(f"Starting embedding process for document: {document.id} ({document.title if hasattr(document, 'title') else 'Unknown title'})")
+        logger.info(f"Starting embedding process for document: {self.document.id} ({self.document.title if hasattr(self.document, 'title') else 'Unknown title'})")
         
         from document_manager.models.chunks import DocumentChunk
         from document_manager.models.summaries import DocumentSummary
                 
         logger.debug("Fetching chunks and summaries from database")
-        chunks =    DocumentChunk.objects.filter(document=document, vector_id__isnull=True) 
-        summaries = DocumentSummary.objects.filter(document=document, vector_id__isnull=True)
+        chunks =    DocumentChunk.objects.filter(document=self.document, vector_id__isnull=True) 
+        summaries = DocumentSummary.objects.filter(document=self.document, vector_id__isnull=True)
         
         chunk_count = chunks.count()
         summary_count = summaries.count()
@@ -218,11 +252,9 @@ class Embedder:
         logger.info(f"Found {chunk_count} chunks and {summary_count} summaries to embed (total: {total_items})")
         
         if total_items == 0:
-            logger.warning(f"No items to embed for document {document.id}")
+            logger.warning(f"No items to embed for document {self.document.id}")
             return
 
-
-        data_to_save = []            
         
         if chunks:
             logger.info(f"Creating embeddings for {chunk_count} chunks...")
@@ -230,7 +262,7 @@ class Embedder:
                 try:
                     embedding = self.get_embedding(chunk)
                     data = {"object":chunk, "model":"DocumentChunk", "object_id":chunk.pk, "type": chunk.chunk_type, "document_id":chunk.document.id, "vector":embedding}
-                    data_to_save.append(data)
+                    self.data_to_save.append(data)
                     
                     if (i + 1) % 50 == 0:  # Log progress every 50 chunks
                         logger.info(f"Embedded {i + 1}/{chunk_count} chunks")
@@ -247,7 +279,7 @@ class Embedder:
                 try:
                     embedding = self.get_embedding(summary)
                     data = {"object":summary, "model":"DocumentSummary", "object_id":summary.pk, "type": summary.summary_type, "document_id":summary.document.id, "vector":embedding}
-                    data_to_save.append(data)
+                    self.data_to_save.append(data)
                     
                     if (i + 1) % 10 == 0:  # Log progress every 10 summaries
                         logger.info(f"Embedded {i + 1}/{summary_count} summaries")
@@ -259,28 +291,22 @@ class Embedder:
             logger.info(f"Successfully created embeddings for all {summary_count} summaries")
         
         logger.debug("Initializing vector database client")
-        qdrant_client = self._initialise_vector_database_client()
-
-        # Santise the collection name to ensure no Qdrant naming issues -> Replaces all NON uppercase letters, lowercase letters, digits, underscores and hyphens with an underscore.
-        import re
-        collection_name = f"{re.sub(r'[^a-zA-Z0-9]', '_', document.slug)}__{document.id}"
-        logger.info(f"Using collection name: {collection_name}")
-
-        logger.debug(f"Checking if collection {collection_name} exists")
-        ###! Need to change: if not exist, qdrant returns an exception, not None. So need to handle this with a try/except block to set value, then if/else to check it.
-        if not qdrant_client.collection_exists(collection_name=collection_name):
-            logger.warning(f"Collection {collection_name} does not exist, creating it")
-            self._create_collection(qdrant_client, collection_name)
-        else:
-            logger.info(f"Collection {collection_name} already exists")
         
-        if (data_to_save is not None) and (qdrant_client.collection_exists(collection_name=collection_name)):
-            logger.info(f"Saving {len(data_to_save)} embeddings to database and Qdrant")
-            #self._save(data_to_save, qdrant_client, collection_name) -> moving this to the pipeline for more control
+
+        
+
+        #if not qdrant_client.collection_exists(collection_name=collection_name):
+            #logger.warning(f"Collection {collection_name} does not exist, creating it")
+            #self._create_collection(qdrant_client, collection_name)
+        #else:
+            #logger.info(f"Collection {collection_name} already exists")
+        
+        if self.data_to_save is not None:
+            logger.info(f"Saving {len(self.data_to_save)} embeddings to database and Qdrant")
             
-            logger.info(f"Document embedding process completed successfully for document {document.id}")
-            return data_to_save, qdrant_client, collection_name
+            logger.info(f"Document embedding process completed successfully for document {self.document.id}")
+            return
         else:
-            logger.error(f"Cannot save data: data_to_save is None or collection {collection_name} does not exist")
+            logger.error(f"Cannot save data: self.data_to_save is None.")
             
         return

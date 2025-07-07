@@ -178,10 +178,10 @@ class Control:
     def embed_document(self, document:Document):
         try:
             ProcessingLog.create_log(document, EventEnum.EMBEDDING_STARTED)
-            embedder = Embedder(self.llm_service, self.embedding_model)
-            data_to_save, qdrant_client, collection_name = embedder.process_document(document)
+            embedder = Embedder(document, self.llm_service, self.embedding_model)
+            embedder.process_document()
             ProcessingLog.create_log(document, EventEnum.EMBEDDING_COMPLETED)
-            return embedder, data_to_save, qdrant_client, collection_name
+            return embedder
         except Exception as e:
             logger.error(f"Failed to embed document chunks and summaries, and save the embeddings. | Error: {e}", exc_info=True, extra={
                 'document_id': document.id,
@@ -192,9 +192,9 @@ class Control:
             raise
     
     @retry_with_backoff(max_retries=5) # Only retries the saving, rather than the whole summarisation process
-    def _save_embeddings(self, embedder, data_to_save, qdrant_client, collection_name):
+    def _save_embeddings(self, embedder):
         logger.info("Saving embeddings to vector database and references to postgre")
-        return embedder._save_results_to_database(data_to_save, qdrant_client, collection_name) 
+        return embedder._save()
 
     ### COST ESTIMATION
 
@@ -207,7 +207,8 @@ class Control:
             - embedding 
 
         For chunking: 
-            - Create a token estimate for each chunk type
+            - Create a token estimate for page inputs.
+            - Create a token estimate for sentance and paragraph (only these use llms) outputs
             - query the databse for sentances and paragraph chunk types. 
                 - (Only sentances and paragrpahs use an llm for chunking -> pages and 6 pages are standard python/pdfplumber.)
             - for each type: (len(queryset) * input_token_cost) + (len(queryset) * output_token_cost)
@@ -227,13 +228,22 @@ class Control:
         '''
 
         input_model_price_map = { # USD per 1 million tokens
-            "gpt-4.1-2025-04-14": 2,
+            "gpt-4.1-2025-04-14": {
+                "cost":2,
+                "tokenizer":"cl100k_base"
+            }
         }
 
         output_model_price_map = { # USD per 1 million tokens
-            "gpt-4.1-2025-04-14": 8,
+            "gpt-4.1-2025-04-14":  {
+                "cost":8,
+                "tokenizer":"cl100k_base"
+            }
         }
 
         embedding_model_price_map = { # USD per 1 million tokens
-            "text-embedding-3-small" : 0.02,
+            "text-embedding-3-small" :  {
+                "cost":0.02,
+                "tokenizer":"cl100k_base"
+            }
         }

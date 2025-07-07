@@ -126,6 +126,9 @@ class Document(models.Model):
         help_text="ID reference in the vector database"
     )
     
+    collection_name = models.CharField(max_length=250, blank=True, null=True)
+
+    
     metadata = models.JSONField(default=dict, blank=True)  # Stores the flexible dict
     
     created_at = models.DateTimeField(auto_now_add=True)
