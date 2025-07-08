@@ -175,13 +175,29 @@ class Embedder:
         logger.info(f"Prepared {len(points_to_upsert)} points for Qdrant upsert")
 
         try:
-            logger.debug(f"Upserting {len(points_to_upsert)} points to Qdrant collection: {collection_name}")
-            self.qdrant_client.upsert(
-                collection_name = collection_name,
-                wait = True, # Ensures operation completes
-                points = points_to_upsert
-            )
-            logger.info(f"Successfully upserted {len(points_to_upsert)} points to Qdrant")
+            batch_size = 500 
+            total_points = len(points_to_upsert)
+            total_batches = (total_points + batch_size - 1) // batch_size # Ceiling divison -> '//' is a floor dvision (rounds down) but adding batch_size-1 means the total points are always pushed over and rounded down, meaning we should always have the correct number of batches.
+
+            logger.info(f"Upserting {total_points} points to Qdrant collection: {collection_name}")
+            logger.info(f"Upserting {total_batches} batches of {batch_size} points.")
+
+            batch_to_upsert = []
+            for batch in range(total_batches):
+
+                batch_start = batch * batch_size
+                batch_end = batch_start + batch_size
+
+                batch_to_upsert = points_to_upsert[batch_start:batch_end]
+                logger.info("Upserting batch to Qdrant...")
+                self.qdrant_client.upsert(
+                    collection_name = collection_name,
+                    wait = True, # Ensures operation completes
+                    points = batch_to_upsert
+                )
+                logger.info(f"Successfully uploaded batch {batch} of {total_batches}")
+
+            logger.info(f"Successfully upserted all batches to Qdrant -> total {total_points} points.")
             
             # Verify the upsert succeeded
             saved_count = self.qdrant_client.count(
@@ -189,8 +205,8 @@ class Embedder:
                 exact = True,
             )
 
-            if saved_count < len(points_to_upsert):
-                raise Exception(f"Qdrant verification failed: expected {len(points_to_upsert)}, found {saved_count}")
+            if saved_count < total_points:
+                raise Exception(f"Qdrant verification failed: expected {total_points}, found {saved_count}")
 
             with transaction.atomic():
                 logger.debug("Starting atomic transaction for database and Qdrant updates")
