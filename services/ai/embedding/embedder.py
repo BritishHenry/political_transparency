@@ -212,6 +212,10 @@ class Embedder:
                         batch_size=100 # recommended when updating a lot of instances
                     )
                     logger.info(f"Successfully updated {len(summaries_to_update)} DocumentSummary objects")
+
+            self.document.embedding_model = self.embedding_model
+            self.document.save(update_fields=['embedding_model'])
+            logger.info(f"Updated Document embedding_model to: {self.embedding_model}")
                                 
         except Exception as e:
             logger.error(f"Error while saving data to DocumentChunk, DocumentSummary or Qdrant: {e}")

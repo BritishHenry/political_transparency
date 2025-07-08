@@ -358,7 +358,12 @@ class PDFDocumentChunker:
                     created = DjangoDocumentChunk.objects.bulk_create(django_chunks)
                     created_chunks[chunk_type] = created
                     logger.info(f"Saved {len(created)} {chunk_type} chunks to database")
-            
+        
+        
+        self.document.chunking_model = self.chunking_model
+        self.document.save(update_fields=['chunking_model'])
+        logger.info(f"Updated Document chunking_model to: {self.chunking_model}")
+        
         return created_chunks
     
     def process_document(self) -> Dict[str, List[DocumentChunk]]:

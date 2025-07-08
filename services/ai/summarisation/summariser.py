@@ -322,6 +322,11 @@ class DocumentSummarizer:
                 logger.info(f"Updated document metadata and contents page for: {self.document.id}")
                 logger.info(f"Saved document summary: {doc_summary.id}")
                 logger.info(f"Saved {len(self.sections)} section summaries")
+
+                self.document.summarising_model = self.model
+                self.document.save(update_fields=['summarising_model'])
+                logger.info(f"Updated Document summarising_model to: {self.model}")
+
         except IntegrityError: # this is raised if there are *any* integrity errors in the satements in the transaction.
             logger.error("Integrity Error while saving items to database.")
             raise

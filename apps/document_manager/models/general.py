@@ -128,6 +128,11 @@ class Document(models.Model):
     
     collection_name = models.CharField(max_length=250, blank=True, null=True)
 
+    chunking_model =    models.CharField(max_length=250, blank=True, null=True)
+    summarising_model = models.CharField(max_length=250, blank=True, null=True)
+    embedding_model =   models.CharField(max_length=250, blank=True, null=True)
+    
+    estimated_cost_of_processing = models.FloatField(blank=True, null=True)
     
     metadata = models.JSONField(default=dict, blank=True)  # Stores the flexible dict
     
