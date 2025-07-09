@@ -8,8 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Embedder:
-    def __init__(self, document, llm_service, embedding_model):
-        self.document = document
+    def __init__(self, llm_service, embedding_model, document=None): # Allow for no document so chat_manager can use.
+        if document is not None:
+            self.document = document 
         self.llm_service = llm_service
         self.embedding_model = embedding_model
 
@@ -189,7 +190,7 @@ class Embedder:
                 batch_end = batch_start + batch_size
 
                 batch_to_upsert = points_to_upsert[batch_start:batch_end]
-                logger.info("Upserting batch to Qdrant...")
+                logger.info(f"Upserting batch {batch} to Qdrant...")
                 self.qdrant_client.upsert(
                     collection_name = collection_name,
                     wait = True, # Ensures operation completes
