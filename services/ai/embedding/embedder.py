@@ -11,6 +11,7 @@ class Embedder:
     def __init__(self, llm_service, embedding_model, document=None): # Allow for no document so chat_manager can use.
         if document is not None:
             self.document = document 
+            print(self.document)
         self.llm_service = llm_service
         self.embedding_model = embedding_model
 
@@ -43,6 +44,7 @@ class Embedder:
             qdrant_client = QdrantClient(
                 url=settings.QDRANT_POLITICAL_TRANSPARENCY_ENDPOINT, # I have seen url listed as 'url' and 'host' in the docs -> may need to change if not working.
                 api_key=settings.QDRANT_API_KEY,
+                timeout=60,
             )
             logger.info(f"Successfully connected to Qdrant at {settings.QDRANT_POLITICAL_TRANSPARENCY_ENDPOINT}")
             return qdrant_client
@@ -127,7 +129,7 @@ class Embedder:
             logger.error(f"Error creating collection {collection_name}: {e}")
             raise
         
-    @retry_with_backoff()
+    #@retry_with_backoff(max_retries=3) -> this is applied in the pipeline.
     def _save(self):
         '''Save the embeddings to Qdrant and update the relevant fields in the Postgresql models.'''
         logger.info(f"Starting save operation for {len(self.data_to_save)}.")
@@ -190,13 +192,14 @@ class Embedder:
                 batch_end = batch_start + batch_size
 
                 batch_to_upsert = points_to_upsert[batch_start:batch_end]
-                logger.info(f"Upserting batch {batch} to Qdrant...")
-                self.qdrant_client.upsert(
+                logger.info(f"Upserting {len(batch_to_upsert)} points in batch {batch} to Qdrant...")
+                upsert_result = self.qdrant_client.upsert(
                     collection_name = collection_name,
-                    wait = True, # Ensures operation completes
-                    points = batch_to_upsert
+                    wait = True, # Ensures operation completes -> defaults to True
+                    points = batch_to_upsert,
                 )
-                logger.info(f"Successfully uploaded batch {batch} of {total_batches}")
+                logger.info(f"Upserting result: {upsert_result}")
+                logger.info(f"Successfully uploaded batch {(int(batch)+1)} of {total_batches}")
 
             logger.info(f"Successfully upserted all batches to Qdrant -> total {total_points} points.")
             
@@ -206,14 +209,13 @@ class Embedder:
                 exact = True,
             )
 
-            if saved_count < total_points:
+            if saved_count.count < total_points:
                 raise Exception(f"Qdrant verification failed: expected {total_points}, found {saved_count}")
-
+            
+            logger.info("Starting atomic transaction for database and Qdrant updates")
             with transaction.atomic():
-                logger.debug("Starting atomic transaction for database and Qdrant updates")
-                
                 if chunks_to_update:
-                    logger.debug(f"Bulk updating {len(chunks_to_update)} DocumentChunk objects")
+                    logger.info(f"Bulk updating {len(chunks_to_update)} DocumentChunk objects")
                     DocumentChunk.objects.bulk_update(
                         chunks_to_update,
                         fields=['vector_id', 'embedding_model', 'embedded_at'],
@@ -222,13 +224,14 @@ class Embedder:
                     logger.info(f"Successfully updated {len(chunks_to_update)} DocumentChunk objects")
 
                 if summaries_to_update:
-                    logger.debug(f"Bulk updating {len(summaries_to_update)} DocumentSummary objects")
+                    logger.info(f"Bulk updating {len(summaries_to_update)} DocumentSummary objects")
                     DocumentSummary.objects.bulk_update(
                         summaries_to_update,
                         fields=['vector_id', 'embedding_model', 'embedded_at'],
                         batch_size=100 # recommended when updating a lot of instances
                     )
                     logger.info(f"Successfully updated {len(summaries_to_update)} DocumentSummary objects")
+            logger.info("Atomic transaction success -> chunks and summaries updated.")
 
             self.document.embedding_model = self.embedding_model
             self.document.save(update_fields=['embedding_model'])
@@ -257,7 +260,7 @@ class Embedder:
             - Using text-embedding-3-small, assuming a 300 page pdf doc, which given our chunking methodology, will cost approx $0.0163
             - If cost is an issue, look to batch embed the sentances and maybe paragraphs.
         '''
-        logger.info(f"Starting embedding process for document: {self.document.id} ({self.document.title if hasattr(self.document, 'title') else 'Unknown title'})")
+        logger.info(f"Starting embedding process for document: {self.document.id} ({self.document.name if hasattr(self.document, 'name') else 'Unknown title'})")
         
         from document_manager.models.chunks import DocumentChunk
         from document_manager.models.summaries import DocumentSummary

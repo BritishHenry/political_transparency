@@ -187,7 +187,7 @@ class Control:
     def embed_document(self):
         try:
             ProcessingLog.create_log(self.document, EventEnum.EMBEDDING_STARTED)
-            embedder = Embedder(self.document, self.llm_service, self.embedding_model)
+            embedder = Embedder(document=self.document, llm_service=self.llm_service, embedding_model=self.embedding_model)
             embedder.process_document()
             ProcessingLog.create_log(self.document, EventEnum.EMBEDDING_COMPLETED)
             return embedder
