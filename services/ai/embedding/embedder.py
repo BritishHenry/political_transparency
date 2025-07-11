@@ -55,7 +55,7 @@ class Embedder:
     @retry_with_backoff(base_delay=5)
     def get_embedding(self, input):
         '''Create the embedding using OpenAI Responses API: used for document upload and user messages'''
-        
+        print(input)
         # Handle both objects with .content and plain strings
         text = input.content if hasattr(input, 'content') else input
         
@@ -73,6 +73,8 @@ class Embedder:
             )
             
             embedding = validate_embedding_response(response, self.vector_size)
+            logger.debug("Successfully created embedding.")
+
             return embedding
         except Exception as e:
             logger.error(f"Error creating embedding for text length {text_length}: {e}")

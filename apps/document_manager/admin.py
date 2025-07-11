@@ -43,7 +43,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentChunk)
 class DocumentChunkAdmin(admin.ModelAdmin):
-    list_display = ('document', 'chunk_type', 'chunk_index', 'vector_id', 'created_at')
+    list_display = ('document', 'chunk_type', 'chunk_index', 'vector_id', 'created_at', 'pk')
     list_filter = ('created_at',)
     search_fields = ('document__name', 'content')
     readonly_fields = ('created_at',)
@@ -51,7 +51,7 @@ class DocumentChunkAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentSummary)
 class DocumentSummaryAdmin(admin.ModelAdmin):
-    list_display = ('document', 'summary_type', 'section_name', 'vector_id', 'created_at')
+    list_display = ('document', 'summary_type', 'section_name', 'vector_id', 'created_at', 'pk')
     list_filter = ('created_at',)
     search_fields = ('document__name', 'content')
     readonly_fields = ('created_at',)

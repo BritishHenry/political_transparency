@@ -47,7 +47,7 @@ class ChatView(View):
         }
         
         # Schedule the response generation and recieve an ID to query via AJAX polling
-        task_id = async_task('apps.chat_manager.tasks.generate_response', response_params, save=True)
+        task_id = async_task('apps.chat_manager.tasks.generate_response', response_params) #removed 'save=True', as I don't know what its for
 
         return JsonResponse({"success": True, "slug":slug, "message": new_message, "task_id":task_id})
 
