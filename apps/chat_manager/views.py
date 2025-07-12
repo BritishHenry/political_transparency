@@ -54,19 +54,22 @@ class ChatView(View):
 
     
 def get_response(request, slug, task_id):
-    task = Task.objects.get(id=task_id)
-    response = task.result
-    
-    if response:
-        new_message = {
-            "sender":"ai",
-            "text": response,
-            "timestamp": timezone.now().strftime("%H:%M:%S"),
-        }
+    try:
+        task = Task.objects.get(id=task_id)
+        response = task.result
+        
+        if response:
+            new_message = {
+                "sender":"ai",
+                "text": response,
+                "timestamp": timezone.now().strftime("%H:%M:%S"),
+            }
 
-        messages = request.session.get("chat_messages")
-        messages.append(new_message)
-        request.session["chat_messages"] = messages
+            messages = request.session.get("chat_messages")
+            messages.append(new_message)
+            request.session["chat_messages"] = messages
 
-        return JsonResponse({"response_ready": True, "message": new_message})
-    return JsonResponse({"response_ready": False})
+            return JsonResponse({"response_ready": True, "message": new_message})
+        
+    except Exception as e:
+        return JsonResponse({"response_ready": False})

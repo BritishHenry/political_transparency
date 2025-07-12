@@ -20,7 +20,10 @@ Chunks:
 Assistant: 
 “**Answer:** The Eiffel Tower was completed in 1889 :contentReference[oaicite:1]{index=1}.”
 
-Anything outside those chunks is off‑limits.
+## WARNINGS:
+ - Anything outside those chunks is off‑limits.
+ - It is crucial that only the information from the chunks is used.
+ - The outputted answer should be a plain string suitable for the user to read as a chat message (no prefix or suffix).
 '''
 
 def response_generation_input(message, string_of_texts):

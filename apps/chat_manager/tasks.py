@@ -39,9 +39,11 @@ def generate_response(response_params):
 
         # Step 3: get texts from postgre for the vectors
         texts = []
-        for key, value in search_results: # Currently only looping through once. likely due to a mismatch in iteration method and the object type.
-            payload = dict(value[0])['payload']
-            print('Payload: ', payload)
+        for result in search_results.points:
+            if hasattr(result, 'payload'):
+                payload = result.payload
+            else:
+                payload = dict(result[0])['payload'] if isinstance(result, (list, tuple)) else result['payload']
 
             #print("Type: ", payload['type'])
             if payload['type'] in ['document', 'summary']: # DocumentSummary
@@ -49,14 +51,12 @@ def generate_response(response_params):
             else: #DocumentChunk
                 text = get_object_or_404(DocumentChunk, pk=int(payload['object_id'])).content
             texts.append(text)
-        #print("Got raw text from postgre, using the vector references.")
-        print(texts)
+
         # Generate a single string with subheadings
         string_of_texts = "\n\n".join(
             f"### Chunk {i+1}\n\n{item}" for i, item in enumerate(texts)
         )
-        print(string_of_texts)
-        print('user message: ', response_params["message"])
+        
         # Step 4: call ai to generate answer
         response = openai_client.responses.create(
                     model = "gpt-4",
