@@ -277,18 +277,61 @@
             padding: var(--spacing-2);
         }
     }
+    .document-hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-3);
+}
+
+.document-hero-button {
+    flex-shrink: 0; /* Prevents button from shrinking */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+}
+
+/* Ensure title doesn't wrap unnecessarily */
+.document-hero-title {
+    flex: 1;
+    min-width: 0; /* Allows text truncation if needed */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .document-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-2);
+    }
+    
+    .document-hero-button {
+        align-self: stretch; /* Full width on mobile */
+        justify-content: center;
+    }
+}
 </style>
 {% endblock %}
 
 {% block main %}
 <div class="document-hero">
     <div class="document-hero-inner">
-        <h1 class="document-hero-title">
-            {{ document.name }}
-            {% if document.processing_status != 'completed' %}
-            <span class="document-status">{{ document.processing_status|capfirst }}</span>
-            {% endif %}
-        </h1>
+        <div class="document-hero-content">
+            <h1 class="document-hero-title">
+                {{ document.name }}
+                {% if document.processing_status != 'completed' %}
+                <span class="document-status">{{ document.processing_status|capfirst }}</span>
+                {% endif %}
+            </h1>
+            <a href="{% url 'view_document_source' document.slug %}" class="btn rounded-pill btn-secondary document-hero-button">
+                <span>View Original</span>
+                <svg class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+            </a>
+        </div>
     </div>
 </div>
 

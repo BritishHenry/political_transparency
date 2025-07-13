@@ -1,9 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from document_manager.models import Document
 from django.http import JsonResponse
 from django.utils import timezone
 import re 
+from django.http import FileResponse, Http404
+
 
 from django_q.tasks import async_task
 from django_q.models import Task
@@ -43,7 +45,8 @@ class ChatView(View):
         document = get_object_or_404(Document, slug=slug)
         response_params = {
             "message": message,
-            "collection_name": f"{re.sub(r'[^a-zA-Z0-9]', '_', document.slug)}__{document.id}"
+            "collection_name": f"{re.sub(r'[^a-zA-Z0-9]', '_', document.slug)}__{document.id}",
+            "document_slug": document.slug
         }
         
         # Schedule the response generation and recieve an ID to query via AJAX polling
@@ -73,3 +76,17 @@ def get_response(request, slug, task_id):
         
     except Exception as e:
         return JsonResponse({"response_ready": False})
+
+def view_document_source(request, slug):
+    document = get_object_or_404(Document, slug=slug)
+    try:
+        # For local files
+        return FileResponse(
+            document.file.open('rb'),
+            content_type='application/pdf',
+            as_attachment=False,  # False = view in browser, True = download
+            filename=document.name
+        )
+    
+    except FileNotFoundError:
+        raise Http404("PDF file not found")

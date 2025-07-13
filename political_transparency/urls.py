@@ -48,6 +48,7 @@ urlpatterns = [
     #path("documents/",              docs_views.documents, name="documents"),
     path("documents/<slug:slug>/",  chat_views.ChatView.as_view(), name="chat_view"),
     path("documents/<slug:slug>/response/<slug:task_id>/",  chat_views.get_response, name="get_response"),
+    path("documents/<slug:slug>/source/",  chat_views.view_document_source, name="view_document_source"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
