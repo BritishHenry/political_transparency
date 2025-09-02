@@ -4,7 +4,7 @@ from .models import Document
 
 
 def document_library(request):
-    documents = Document.objects.all()
+    documents = Document.objects.filter(is_active=True)
 
     context={"documents":documents}
     return render(request, "document_library.html", context)
