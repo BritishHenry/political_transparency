@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 import re 
 from django.http import FileResponse, Http404
+from django.contrib import messages
 
 
 from django_q.tasks import async_task
@@ -16,9 +17,13 @@ class ChatView(View):
     def get(self, request, slug):
 
         document = get_object_or_404(Document, slug=slug)
-        messages = request.session.get("chat_messages")
+        if document.is_active != True:
+            messages.error(request, "Cannot chat with an inactive document.")
+            return redirect("document_library")
+        
+        chat_messages = request.session.get("chat_messages")
 
-        context={"document":document, "slug":slug, "messages":messages}
+        context={"document":document, "slug":slug, "chat_messages":chat_messages}
         return  render(request, "document_chat.html", context)
     
     def post(self, request, slug):
